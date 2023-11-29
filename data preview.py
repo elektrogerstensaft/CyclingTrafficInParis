@@ -1,10 +1,12 @@
 import pandas as pd
+import seaborn as sns
 #import numpy as np
 
 df = pd.read_csv("comptage-velo-donnees-compteurs.csv", sep = ";")
 print(df.info())
 #print(df.head(10))
 print(df.describe())
+df["Date et heure de comptage"] = pd.to_datetime(df["Date et heure de comptage"])
 
 print(df["Identifiant du compteur"].value_counts())
 print(df["Nom du compteur"].value_counts())
