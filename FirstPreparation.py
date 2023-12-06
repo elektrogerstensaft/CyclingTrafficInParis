@@ -43,5 +43,8 @@ translation = {'Identifiant du compteur': 'Counter ID',
 df_en = df.copy()
 df_en.columns = [translation[col_name] for col_name in df_en.columns]
 
+# defining Hourly count
+df_en = df_en[(df_en['Hourly count'] != 0) & (df_en['Hourly count'] <= 2000)]
+
 # export the df as a separate new one
 df_en.to_csv("CyclingTrafficInParis_eng.csv", index=False)
