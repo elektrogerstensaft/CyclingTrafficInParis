@@ -15,9 +15,10 @@ hour_labels = ["12-2 am", "2-4 am", "4-6 am", "6-8 am", "8-10 am", "10-12 pm",
                "12-2 pm", "2-4 pm", "4-6 pm", "6-8 pm", "8-10 pm", "10-12 am"]
 
 # plot
-fig_hourly = go.Figure(go.Bar(x=mean_cycle_hour["hours"],
+fig_hourly = go.Figure(x=mean_cycle_hour["hours"],
                               y=mean_cycle_hour["Hourly count"],
-                              name="Hourly"))
+                              name="Hourly",
+                              marker=dict(color="#6c8ead")))
 fig_hourly.update_layout(title="Average number of cyclists per day",
                          xaxis_title="Daytime",
                          yaxis_title="",
@@ -38,7 +39,8 @@ mean_cycle_day = mean_cycle_day.sort_values("weekday")
 # plot
 fig_weekday = go.Figure(go.Bar(x=mean_cycle_day["weekday"],
                                y=mean_cycle_day["Hourly count"],
-                               name="Day"))
+                               name="Day",
+                               marker=dict(color="#4c6989")))
 fig_weekday.update_layout(title="Average number of cyclists per week",
                           xaxis_title="",
                           yaxis_title="")
@@ -51,7 +53,8 @@ amount_month = round(amount_month, 0)
 # plot
 fig_month = go.Figure(go.Bar(x=amount_month["Month and year of count"],
                              y=amount_month["count"],
-                             name="Monthly"))
+                             name="Monthly",
+                             marker=dict(color="#344966")))
 fig_month.update_layout(title="Total number of cyclists per month",
                         xaxis_title="",
                         yaxis_title="Amount of cyclists")
