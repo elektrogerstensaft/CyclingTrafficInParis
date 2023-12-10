@@ -46,5 +46,12 @@ df_en.columns = [translation[col_name] for col_name in df_en.columns]
 # defining Hourly count
 df_en = df_en[(df_en['Hourly count'] != 0) & (df_en['Hourly count'] <= 2000)]
 
+df_en[["Latitude", "Longitude"]] = df_en["Geographic coordinates"].str.split(",", expand=True)
+
 # export the df as a separate new one
 df_en.to_csv("CyclingTrafficInParis_eng.csv", index=False)
+
+#generating a csv that stores information about the counter: (site/ technical counter) id, name, site name, geo latitude/longitude, installation date  
+df_counter = df_en.drop(["Hourly count","Date and time of count","Month and year of count","Geographic coordinates"], axis = 1)
+df_counter.drop_duplicates(inplace = True)
+df_counter.to_csv("Counters.csv", index=False)
