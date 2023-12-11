@@ -59,3 +59,24 @@ for i in range(3):
 # Global: The hourly counts of all counters are normally distributed
 counts = df["Hourly count"].to_numpy()
 print("Chi-squared test for all counts", normaltest(counts))
+
+
+df_top3 = df.groupby(["Counter name"],as_index= False)["Hourly count"].sum().sort_values("Hourly count", ascending = False).head(3)
+
+top3 = []
+for x in df_top3["Counter name"]:
+    top3.append(x)
+df_top3 = df.loc[df["Counter name"].isin(top3)]
+
+
+#Histogram of top counter Hourly count values, without logarithmic y axis
+import plotly.express as px
+fig = px.histogram(df_top3,
+                    x="Hourly count",
+                    log_y=False,
+                    labels = {
+                        "Hourly count" : "Hourly counted bicycles"
+                    },
+                    color = "Counter name",
+                    title="Histogram of top 3 counters Hourly counts")
+fig.show()
