@@ -3,7 +3,7 @@ import plotly.graph_objects as go
 from plotly.subplots import make_subplots
 
 df = pd.read_csv("CyclingTrafficInParis_eng.csv")
-df["Date and time of count"] = pd.to_datetime(df["Date and time of count"].str.split('+').str[0])
+df["Date and time of count"] = pd.to_datetime(df["Date and time of count"].str.split("+").str[0])
 
 # defining the colours for the plots
 colour_hourly = "#8DA0CB"
@@ -31,7 +31,7 @@ fig_hourly.update_layout(title="Average number of cyclists per day",
                          xaxis=dict(tickvals=mean_cycle_hour["hours"], ticktext=hour_labels))
 
 # 2. Average cyclists per week
-df["weekday"] = df["Date and time of count"].dt.strftime('%A')
+df["weekday"] = df["Date and time of count"].dt.strftime("%A")
 
 # re-ordering the weekdays
 weekday_order = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]
@@ -52,7 +52,7 @@ fig_weekday.update_layout(title="Average number of cyclists per week",
                           yaxis_title="")
 
 # 3. Total cyclists per month
-df["Month and year of count"] = df["Date and time of count"].dt.strftime('%Y-%m')
+df["Month and year of count"] = df["Date and time of count"].dt.strftime("%Y-%m")
 amount_month = df.groupby("Month and year of count").size().reset_index(name="count")
 amount_month = round(amount_month, 0)
 
@@ -65,8 +65,8 @@ fig_month.update_layout(title="Total number of cyclists per month",
                         xaxis_title="",
                         yaxis_title="Amount of cyclists")
 # 4. Seasonal
-seasons = {1: 'Winter', 2: 'Winter', 3: 'Spring', 4: 'Spring', 5: 'Spring', 6: 'Summer',
-           7: 'Summer', 8: 'Summer', 9: 'Autumn', 10: 'Autumn', 11: 'Autumn', 12: 'Winter'}
+seasons = {1: "Winter", 2: "Winter", 3: "Spring", 4: "Spring", 5: "Spring", 6: "Summer",
+           7: "Summer", 8: "Summer", 9: "Autumn", 10: "Autumn", 11: "Autumn", 12: "Winter"}
 df["Season"] = pd.to_datetime(df["Month and year of count"]).dt.month.map(seasons)
 
 amount_season = df.groupby("Season").size().reset_index(name="count")
