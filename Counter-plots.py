@@ -69,8 +69,13 @@ seasons = {1: "Winter", 2: "Winter", 3: "Spring", 4: "Spring", 5: "Spring", 6: "
            7: "Summer", 8: "Summer", 9: "Autumn", 10: "Autumn", 11: "Autumn", 12: "Winter"}
 df["Season"] = pd.to_datetime(df["Month and year of count"]).dt.month.map(seasons)
 
-amount_season = df.groupby("Season").size().reset_index(name="count")
+# ignoring the year 2022 for a better seasonal proportion
+df_seasonal = df.copy()
+df_seasonal = df_seasonal[df_seasonal["Date and time of count"].dt.year != 2022]
 
+df_seasonal["Season"] = pd.to_datetime(df_seasonal["Month and year of count"]).dt.month.map(seasons)
+
+amount_season = df_seasonal.groupby("Season").size().reset_index(name="count")
 # reorder the seasons correctly
 season_order = ["Spring", "Summer", "Autumn", "Winter"]
 amount_season["Season"] = pd.Categorical(amount_season["Season"], categories=season_order, ordered=True)
