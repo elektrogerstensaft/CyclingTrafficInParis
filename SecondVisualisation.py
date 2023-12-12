@@ -71,6 +71,11 @@ df["Season"] = pd.to_datetime(df["Month and year of count"]).dt.month.map(season
 
 amount_season = df.groupby("Season").size().reset_index(name="count")
 
+# reorder the seasons correctly
+season_order = ["Spring", "Summer", "Autumn", "Winter"]
+amount_season["Season"] = pd.Categorical(amount_season["Season"], categories=season_order, ordered=True)
+amount_season = amount_season.sort_values("Season")
+
 fig_season = go.Figure(go.Bar(x=amount_season["Season"],
                               y=amount_season["count"],
                               name="Seasonal",
