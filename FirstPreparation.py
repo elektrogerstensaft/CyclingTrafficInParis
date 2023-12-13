@@ -3,7 +3,10 @@ import pandas as pd
 df = pd.read_csv("comptage-velo-donnees-compteurs.csv", sep = ";")
 print(df.info())
 df["Date et heure de comptage"] = pd.to_datetime(df["Date et heure de comptage"])
-
+#Boxplot of all Hourly counts
+import plotly.express as px
+fig = px.box(df, y ="Comptage horaire", x = "mois_annee_comptage", title = "All counters hourly counts histogram")
+fig.show()
 """
 ---
 For a smaller .csv file size we exclude redundant columns:
