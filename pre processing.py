@@ -23,18 +23,6 @@ df["Date and time of count"] = pd.to_datetime(df["Date and time of count"], utc=
 df["Counting site installation date"] = pd.to_datetime(df["Counting site installation date"])
 
 df["weekday_of_count"] = df["Date and time of count"].dt.dayofweek
-"""
-weekdays = {
-    0: "Monday",
-    1: "Tuesday",
-    2: "Wednesday",
-    3: "Thursday",
-    4: "Friday",
-    5: "Saturday",
-    6: "Sunday"
-    }
-df["weekday_of_count"] = df["weekday_of_count"].map(weekdays)
-"""
 
 df["week_year"] = df["Date and time of count"].dt.year.astype(str) +"-"+ df["Date and time of count"].dt.isocalendar().week.astype(str)
 df["hour_of_day"] = df["Date and time of count"].dt.hour
@@ -153,3 +141,5 @@ plt.xlabel("Predicted values")
 plt.ylabel("True values")
 plt.title("Linear regression for counted bicycles")
 plt.show();
+
+
