@@ -1,14 +1,17 @@
 ### PREP WORK ON WEATHER DATASET
-
+# Importing Weather dataset
 import pandas as pd
 import seaborn as sns
 import numpy as np
+import matplotlib.pyplot as plt
 
 df_W = pd.read_csv("/Users/marine/Desktop/WEITERBILDUNG DATA ANALYST 2023/PROJECT/WEATHER/donnees-synop-essentielles-omm.csv", sep = ";")
 
-
+# Filtering on department 91 (closest one to Paris)
 df_W = df_W[df_W['department (code)'] == '91']
 
+## Working around date and time 
+# Separating date, year, month, day and hour/time from the 'Date' column and converting date column to datetime
 df_W["date"] = pd.to_datetime(df_W.Date.str[:10])
 df_W["year"] = df_W.Date.str[:4]
 df_W["month"] = df_W.Date.str[5:7]
@@ -16,11 +19,13 @@ df_W["year_month"] = df_W.Date.str[:7]
 df_W["day"] = df_W.Date.str[8:10]
 df_W["time"] = df_W.Date.str[11:19]
 
+# Renaming previous 'Date column' into 'Date_original'
 df_W.rename({'Date': 'Date_original'}, axis=1, inplace=True)
 
+# Erasing data before October 2022 
 df_W = df_W[df_W["date"] > '2022-09-30']
 
-
+# Resizing the DF by focusing on two variables: temperature and precipitations
 drop_cols = ["ID OMM station", "Pression au niveau mer", "Variation de pression en 3 heures",
              "Type de tendance barométrique", "Direction du vent moyen 10 mn", "Vitesse du vent moyen 10 mn",
             "Température","Point de rosée","Visibilité horizontale","Temps présent","Temps passé 1",
@@ -49,21 +54,25 @@ drop_cols = ["ID OMM station", "Pression au niveau mer", "Variation de pression 
 
 df_W.drop(columns=drop_cols, inplace=True)
 
+# Renaming columns to ENG
 df_W.rename(columns={"Humidité": "Humidity","Précipitations dans les 3 dernières heures": "Rain_last3H",
                     "Température (°C)": "Temp_°C"
                     }, inplace=True)
 
-
+# Droping last column not to be used
 df_W.columns = df_W.columns.str.replace("[' é']", "_", regex=True)
 df_W.drop(columns='N_bulosit___des_nuages_de_l___tage_inf_rieur', inplace=True)
 
 
+## Prep work on temperatures
+# Adding a new column to calculate the average temperature per day
 df_W = df_W.join(
     df_W.groupby('date')[['Temp_°C']]
         .transform('mean')  # Calculate the mean
         .rename(columns='Temp_average'.format)  # Rename columns 
 )
 
+# Defining classes/ clusters for the temperatures and average temperatures
 def Temp_classes_average(value):
     if value < 5.9999:
         return "very cold"
@@ -89,14 +98,18 @@ def Temp_classes(value):
 df_W['Temp_classes'] = df_W['Temp_°C'].map(Temp_classes)
 
 
+## Prep work on rainfall
+# Checking on nan values and replacing them by the latest available value before/after on specific hour/day 
 df_W['Rain_last3H'] = df_W['Rain_last3H'].fillna(0)
 
+# Adding a new column to calculate the average rainfall per day
 df_W = df_W.join(
     df_W.groupby('date')[['Rain_last3H']]
         .transform('mean')  # Calculate the mean
         .rename(columns='Rain_average'.format)  # Rename columns 
 )
 
+# Defining classes/ clusters for the rainfall in mm and for the average rainfall (according to météo France info)
 def Rain_classes_average(value):
     if value < 3.9:
         return "no rain/ light rain"
@@ -129,6 +142,28 @@ df_W.to_csv("Weather_eng_final.csv", index=False)
 
 
 ### FIRST VIZUALISATION
+# Infos on final DF Weather
+df_W.info()
+df_W.describe()
+
+# Checking for NaN
+df_W.isnull().sum()
+
+# Formatting Date_original column to Datetime format
+df_W['Date_original'] = pd.to_datetime(df_W['Date_original'], utc=True, errors='coerce')
+df_W['Date_original'].dtype
+
+# Ordering year_month
+ordered_year_month = ["2022-10", "2022-11", "2022-12", "2023-01", "2023-02", "2023-03",
+      "2023-04", "2023-05", "2023-06", "2023-07", "2023-08", "2023-09","2023-10","2023-11","2023-12"]
+
+
+# Sorting data according to ordered_months
+df_W['to_sort']=df_W['year_month'].apply(lambda x:ordered_year_month.index(x))
+df_W = df_W.sort_values('to_sort')
+
+df_W.head()
+
 
 # First viz_ Lineplot with temperatures in average, rainfall in average and humidity in average over the considered period
 
