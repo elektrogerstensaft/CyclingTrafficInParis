@@ -52,17 +52,8 @@ df_en.columns = [translation[col_name] for col_name in df_en.columns]
 # defining Hourly count
 df_en = df_en[(df_en['Hourly count'] != 0) & (df_en['Hourly count'] <= 2000)]
 
-# replacing NaNs
-# for string based columns
-obcol = ["Counter ID", "Counting site name", "Counting site installation date",
-         "Geographic coordinates", "Technical counter ID"]
-
-for column in obcol:
-    mode_value = df_en[column].mode()[0]
-    df_en[column].fillna(mode_value, inplace=True)
-
-# for Counting site ID
-df_en["Counting site ID"].fillna(df_en["Counting site ID"].mean(), inplace=True)
+# deleting NaN
+df_en = df_en.dropna()
 
 # splitting geo coordinates into Latitude/Longitude
 df_en[["Latitude", "Longitude"]] = df_en["Geographic coordinates"].str.split(",", expand=True)
@@ -70,7 +61,9 @@ df_en[["Latitude", "Longitude"]] = df_en["Geographic coordinates"].str.split(","
 # export the df as a separate new one
 df_en.to_csv("CyclingTrafficInParis_eng.csv", index=False)
 
-#generating a csv that stores information about the counter: (site/ technical counter) id, name, site name, geo latitude/longitude, installation date  
-df_counter = df_en.drop(["Hourly count","Date and time of count","Month and year of count","Geographic coordinates"], axis = 1)
-df_counter.drop_duplicates(inplace = True)
+# generating a csv that stores information about the counter: (site/ technical counter) id, 
+# name, site name, geo latitude/longitude, installation date  
+df_counter = df_en.drop(["Hourly count", "Date and time of count", "Month and year of count", "Geographic coordinates"], 
+                        axis=1)
+df_counter.drop_duplicates(inplace=True)
 df_counter.to_csv("Counters.csv", index=False)
