@@ -55,15 +55,15 @@ top2 = []
 for x in df_top2["Counter name"]:
     top2.append(x)
 df_top2 = df.loc[df["Counter name"].isin(top2)]
-df_top2.reset_index()
-
+df_top2.reset_index(inplace = True, drop = True)
+print(df_top2.info())
 """
     The variables: ~ Counter ID, Counter name, Counting site name Counting site ID, Counting site installation date, Technical counter ID ~ 
     were not taken into the dataset as the encode the same information as the geo-coordinates over and over again.
     ~ Date and time of count ~ is encoded in the numerical variables together with Longitude and Latitude
 """
 #dropping the ~ week_year ~ for the initial tests, as ~ Month and year of count ~ contains similar information with less depth
-feats = df_top2.drop(["Counter ID", "Counter name", "Counting site ID", "Counting site installation date", "Technical counter ID", "week_year"],axis =1)
+feats = df_top2.drop(["Counter ID", "Counter name", "Counting site ID", "Counting site name", "Counting site installation date", "Technical counter ID", "week_year"],axis =1)
 feats.rename(columns = {'Month and year of count':'month_year'}, inplace = True) 
 target = df_top2["Hourly count"]
 
@@ -73,15 +73,88 @@ cat = ["direction", "month_year"]
 num = ["day", "Latitude", "Longitude"]
 circular = ["hour_of_day", "weekday_of_count"]
 
-
 from sklearn.preprocessing import OneHotEncoder
 ohe = OneHotEncoder(drop="first",  sparse_output=False)
+X_train_Cat = pd.DataFrame(ohe.fit_transform(X_train[cat]))
+X_train_Cat.columns= ohe.get_feature_names_out()
 
-X_train[cat] = ohe.fit_transform(X_train[cat])
-X_test[cat] = ohe.transform(X_test[cat])
+X_test_Cat = pd.DataFrame(ohe.transform(X_test[cat]))
+X_test_Cat.columns= ohe.get_feature_names_out()
 
+#print(X_test_Cat.info())
+#print(X_train_Cat.info())
 
 from sklearn.preprocessing import StandardScaler
 sc = StandardScaler()
-X_train[num] = sc.fit_transform(X_train[num])
-X_test[num] = sc.transform(X_test[num])
+#X_train[num] = sc.fit_transform(X_train[num])
+#X_test[num] = sc.transform(X_test[num])
+
+print(X_test[num].info())
+print(X_train[num].info())
+
+circular_train = X_train[circular]
+circular_test = X_test[circular]
+
+import numpy as np
+circular_train.loc[:, 'sin_hour'] = circular_train.loc[:, 'hour_of_day'].apply(lambda h : np.sin(2 * np.pi * h / 24))
+circular_train.loc[:, 'cos_hour'] = circular_train.loc[:, 'hour_of_day'].apply(lambda h : np.cos(2 * np.pi * h / 24))
+
+circular_test.loc[:, 'sin_hour'] = circular_test.loc[:, 'hour_of_day'].apply(lambda h : np.sin(2 * np.pi * h / 24))
+circular_test.loc[:, 'cos_hour'] = circular_test.loc[:, 'hour_of_day'].apply(lambda h : np.cos(2 * np.pi * h / 24))
+
+circular_train.loc[:, 'sin_weekday'] = circular_train.loc[:, 'weekday_of_count'].replace({'Monday' : 1, 'Tuesday' : 2, 'Wednesday' : 3, 'Thursday' : 4, 'Friday' : 5, 'Saturday' : 6, 'Sunday' : 7}).apply(lambda h : np.sin(2 * np.pi * h / 7))
+circular_train.loc[:, 'cos_weekday'] = circular_train.loc[:, 'weekday_of_count'].replace({'Monday' : 1, 'Tuesday' : 2, 'Wednesday' : 3, 'Thursday' : 4, 'Friday' : 5, 'Saturday' : 6, 'Sunday' : 7}).apply(lambda h : np.cos(2 * np.pi * h / 7))
+
+circular_test.loc[:, 'sin_weekday'] = circular_test.loc[:, 'weekday_of_count'].replace({'Monday' : 1, 'Tuesday' : 2, 'Wednesday' : 3, 'Thursday' : 4, 'Friday' : 5, 'Saturday' : 6, 'Sunday' : 7}).apply(lambda h : np.sin(2 * np.pi * h / 7))
+circular_test.loc[:, 'cos_weekday'] = circular_test.loc[:, 'weekday_of_count'].replace({'Monday' : 1, 'Tuesday' : 2, 'Wednesday' : 3, 'Thursday' : 4, 'Friday' : 5, 'Saturday' : 6, 'Sunday' : 7}).apply(lambda h : np.cos(2 * np.pi * h / 7))
+
+circular_test = circular_test.drop(['hour_of_day','weekday_of_count'],axis = 1)
+circular_train = circular_train.drop(['hour_of_day','weekday_of_count'],axis = 1)
+
+#the following part should not be necessary, but the previous operations somehow messed with the indexes 
+X_train_num = X_train[num]
+X_test_num = X_test[num]
+
+X_train_num.reset_index(inplace = True, drop = True)
+X_train_Cat.reset_index(inplace = True, drop = True)
+circular_train.reset_index(inplace = True, drop = True)
+
+X_test_num.reset_index(inplace = True, drop = True)
+X_test_Cat.reset_index(inplace = True, drop = True)
+circular_test.reset_index(inplace = True, drop = True)
+
+X_train_enc_sc = pd.concat([X_train_num, X_train_Cat, circular_train], axis =1)
+X_test_enc_sc = pd.concat([X_test_num, X_test_Cat, circular_test], axis =1)
+
+from sklearn.linear_model import LinearRegression
+regressor = LinearRegression()
+
+regressor.fit(X_train_enc_sc, y_train)
+print(regressor.intercept_)
+print(regressor.coef_)
+
+
+coeffs = list(regressor.coef_)
+coeffs.insert(0, regressor.intercept_)
+
+feats2 = list(X_train_enc_sc.columns)
+feats2.insert(0, 'Intercept')
+
+coefficients = pd.DataFrame({'Estimated value': coeffs}, index=feats2)
+print(coefficients)
+
+print('Coefficient of determination of the model on the train set :', regressor.score(X_train_enc_sc, y_train)) #0.477558964889903
+print('Coefficient of determination of the model on the test set', regressor.score(X_test_enc_sc, y_test)) #0.48061996563996245
+
+import matplotlib.pyplot as plt
+
+fig = plt.figure(figsize = (10,10))
+pred_test = regressor.predict(X_test_enc_sc)
+plt.scatter(pred_test, y_test, c='green')
+
+plt.plot((y_test.min(), y_test.max()), (y_test.min(), y_test.max()), color = 'red')
+
+plt.xlabel("Predicted values")
+plt.ylabel("True values")
+plt.title("Linear regression for counted bicycles")
+plt.show();
