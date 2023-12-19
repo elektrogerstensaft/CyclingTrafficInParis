@@ -36,7 +36,10 @@ df_final_W.head()
 # Creating new column 'sum_hourly_count' for suming up every 3H hourly count (corresponding to DF Weather)
 df_final_W["Sum_hourly_count_last3H"] = df_final_W["Hourly count"].rolling(3,min_periods=1).sum()
 
+# Test if when changing Counter ID, rolling sum is working
+Counter_HourlyCount_new = df_final_W[["Counter ID", "Date and time of count", "Hourly count","Sum_hourly_count_last3H"]]
+Counter_HourlyCount_new = Counter_HourlyCount_new[Counter_HourlyCount_new['Date and time of count'] == '2022-10-01 05:00:00+02:00']
+Counter_HourlyCount_new.head(25)
 
-### TO BE CONTINUED - ISSUE = ROLLING TO BE RESETTED WHEN COUNTER ID CHANGE USING GROUPBY BUT NOT WORKING AT THE MOMENT
-
+### TO BE CONTINUED AS ISSUE WHEN FIRST HOUR OF A DATE IS 3AM (> SHOULD NOT TAKE LAST 3H IN THIS CASE
 
