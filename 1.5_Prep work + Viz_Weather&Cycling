@@ -1,0 +1,42 @@
+import pandas as pd
+import seaborn as sns
+import numpy as np
+import matplotlib.pyplot as plt
+
+df_W = pd.read_csv("/Users/marine/Desktop/WEITERBILDUNG DATA ANALYST 2023/PROJECT/WEATHER/Weather_eng_final.csv", sep = ",")
+df = pd.read_csv("/Users/marine/Desktop/WEITERBILDUNG DATA ANALYST 2023/PROJECT/CyclingTrafficInParis_eng.csv", sep = ",")
+
+
+# Cycling DF: separating date, year, month, day and hour/time from the ‘Date and time of count’ column 
+# and converting date column to datetime
+df["date_cycl"] = pd.to_datetime(df['Date and time of count'].str[:10])
+df["year_cycl"] = df['Date and time of count'].str[:4]
+df["month_cycl"] = df['Date and time of count'].str[5:7]
+df["day_cycl"] = df['Date and time of count'].str[8:10]
+df["time_cycl"] = df['Date and time of count'].str[11:19]
+
+df_final_W["Date and time of count"] = pd.to_datetime(df_final_W["Date and time of count"])
+
+# Weather DF: deleting substring 'T' within column 'Date_original' and renaming column 'Date' for merging purposes
+df_W.rename({'Date_original': 'Date and time of count'}, axis=1, inplace=True)
+df_W['Date and time of count'] = df_W['Date and time of count'].str.replace("T"," ")
+
+
+# Concatenating the two datasets based on column ‘date and time of count’
+df_final_W = df.merge(right = df_W, on = 'Date and time of count', how = 'left') 
+df_final_W.head()
+
+## Temp + Rain infos only available every 3H, i.e. 2:00, 5:00, 8:00, 11:00, 14:00, 17:00, 20:00, 23:00 > Following strategy: sum every 3H of column ‘Hourly count’ to match with Weather 
+# Sorting final DF based on columns 'Counter ID' and ‘Date and time of count' and resetting index
+df_final_W.sort_values(by=['Counter ID','Date and time of count'], inplace = True)
+df_final_W = df_final_W.reset_index()
+df_final_W.head()
+
+
+# Creating new column 'sum_hourly_count' for suming up every 3H hourly count (corresponding to DF Weather)
+df_final_W["Sum_hourly_count_last3H"] = df_final_W["Hourly count"].rolling(3,min_periods=1).sum()
+
+
+### TO BE CONTINUED - ISSUE = ROLLING TO BE RESETTED WHEN COUNTER ID CHANGE USING GROUPBY BUT NOT WORKING AT THE MOMENT
+
+
