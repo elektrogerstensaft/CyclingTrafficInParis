@@ -23,6 +23,7 @@ df["Date and time of count"] = pd.to_datetime(df["Date and time of count"], utc=
 df["Counting site installation date"] = pd.to_datetime(df["Counting site installation date"])
 
 df["weekday_of_count"] = df["Date and time of count"].dt.dayofweek
+"""
 weekdays = {
     0: "Monday",
     1: "Tuesday",
@@ -33,6 +34,7 @@ weekdays = {
     6: "Sunday"
     }
 df["weekday_of_count"] = df["weekday_of_count"].map(weekdays)
+"""
 
 df["week_year"] = df["Date and time of count"].dt.year.astype(str) +"-"+ df["Date and time of count"].dt.isocalendar().week.astype(str)
 df["hour_of_day"] = df["Date and time of count"].dt.hour
@@ -49,23 +51,15 @@ df.loc[df["Counter name"].str.contains("NO-SE"), "direction"] = "Southeast"
 
 df.dropna(inplace = True)
 
-#creating a smaller subset for faster testing
-df_top2 = df.groupby(["Counter name"],as_index= False)["Hourly count"].sum().sort_values("Hourly count", ascending = False).head(2)
-top2 = []
-for x in df_top2["Counter name"]:
-    top2.append(x)
-df_top2 = df.loc[df["Counter name"].isin(top2)]
-df_top2.reset_index(inplace = True, drop = True)
-print(df_top2.info())
 """
     The variables: ~ Counter ID, Counter name, Counting site name Counting site ID, Counting site installation date, Technical counter ID ~ 
     were not taken into the dataset as the encode the same information as the geo-coordinates over and over again.
     ~ Date and time of count ~ is encoded in the numerical variables together with Longitude and Latitude
 """
 #dropping the ~ week_year ~ for the initial tests, as ~ Month and year of count ~ contains similar information with less depth
-feats = df_top2.drop(["Counter ID", "Counter name", "Counting site ID", "Counting site name", "Counting site installation date", "Technical counter ID", "week_year"],axis =1)
+feats = df.drop(["Counter ID", "Counter name", "Counting site ID", "Counting site name", "Counting site installation date", "Technical counter ID", "week_year"],axis =1)
 feats.rename(columns = {'Month and year of count':'month_year'}, inplace = True) 
-target = df_top2["Hourly count"]
+target = df["Hourly count"]
 
 X_train, X_test, y_train, y_test = train_test_split(feats, target, test_size=0.25, random_state=42)
 
@@ -81,16 +75,10 @@ X_train_Cat.columns= ohe.get_feature_names_out()
 X_test_Cat = pd.DataFrame(ohe.transform(X_test[cat]))
 X_test_Cat.columns= ohe.get_feature_names_out()
 
-#print(X_test_Cat.info())
-#print(X_train_Cat.info())
-
 from sklearn.preprocessing import StandardScaler
 sc = StandardScaler()
-#X_train[num] = sc.fit_transform(X_train[num])
-#X_test[num] = sc.transform(X_test[num])
-
-print(X_test[num].info())
-print(X_train[num].info())
+X_train[num] = sc.fit_transform(X_train[num])
+X_test[num] = sc.transform(X_test[num])
 
 circular_train = X_train[circular]
 circular_test = X_test[circular]
@@ -102,11 +90,12 @@ circular_train.loc[:, 'cos_hour'] = circular_train.loc[:, 'hour_of_day'].apply(l
 circular_test.loc[:, 'sin_hour'] = circular_test.loc[:, 'hour_of_day'].apply(lambda h : np.sin(2 * np.pi * h / 24))
 circular_test.loc[:, 'cos_hour'] = circular_test.loc[:, 'hour_of_day'].apply(lambda h : np.cos(2 * np.pi * h / 24))
 
-circular_train.loc[:, 'sin_weekday'] = circular_train.loc[:, 'weekday_of_count'].replace({'Monday' : 1, 'Tuesday' : 2, 'Wednesday' : 3, 'Thursday' : 4, 'Friday' : 5, 'Saturday' : 6, 'Sunday' : 7}).apply(lambda h : np.sin(2 * np.pi * h / 7))
-circular_train.loc[:, 'cos_weekday'] = circular_train.loc[:, 'weekday_of_count'].replace({'Monday' : 1, 'Tuesday' : 2, 'Wednesday' : 3, 'Thursday' : 4, 'Friday' : 5, 'Saturday' : 6, 'Sunday' : 7}).apply(lambda h : np.cos(2 * np.pi * h / 7))
+circular_train.loc[:, 'sin_weekday'] = circular_train.loc[:, 'weekday_of_count'].apply(lambda h : np.sin(2 * np.pi * h / 7))
+circular_train.loc[:, 'cos_weekday'] = circular_train.loc[:, 'weekday_of_count'].apply(lambda h : np.cos(2 * np.pi * h / 7))
 
-circular_test.loc[:, 'sin_weekday'] = circular_test.loc[:, 'weekday_of_count'].replace({'Monday' : 1, 'Tuesday' : 2, 'Wednesday' : 3, 'Thursday' : 4, 'Friday' : 5, 'Saturday' : 6, 'Sunday' : 7}).apply(lambda h : np.sin(2 * np.pi * h / 7))
-circular_test.loc[:, 'cos_weekday'] = circular_test.loc[:, 'weekday_of_count'].replace({'Monday' : 1, 'Tuesday' : 2, 'Wednesday' : 3, 'Thursday' : 4, 'Friday' : 5, 'Saturday' : 6, 'Sunday' : 7}).apply(lambda h : np.cos(2 * np.pi * h / 7))
+circular_test.loc[:, 'sin_weekday'] = circular_test.loc[:, 'weekday_of_count'].apply(lambda h : np.sin(2 * np.pi * h / 7))
+circular_test.loc[:, 'cos_weekday'] = circular_test.loc[:, 'weekday_of_count'].apply(lambda h : np.cos(2 * np.pi * h / 7))
+
 
 circular_test = circular_test.drop(['hour_of_day','weekday_of_count'],axis = 1)
 circular_train = circular_train.drop(['hour_of_day','weekday_of_count'],axis = 1)
@@ -125,6 +114,12 @@ circular_test.reset_index(inplace = True, drop = True)
 
 X_train_enc_sc = pd.concat([X_train_num, X_train_Cat, circular_train], axis =1)
 X_test_enc_sc = pd.concat([X_test_num, X_test_Cat, circular_test], axis =1)
+
+X_train_enc_sc.to_csv("X_train.csv", index=False)
+X_test_enc_sc.to_csv("X_test.csv", index=False)
+y_train.to_csv("y_train.csv", index=False)
+y_test.to_csv("y_test.csv", index=False)
+
 
 from sklearn.linear_model import LinearRegression
 regressor = LinearRegression()
