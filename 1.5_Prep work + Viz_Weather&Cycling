@@ -7,6 +7,7 @@ df_W = pd.read_csv("/Users/marine/Desktop/WEITERBILDUNG DATA ANALYST 2023/PROJEC
 df = pd.read_csv("/Users/marine/Desktop/WEITERBILDUNG DATA ANALYST 2023/PROJECT/CyclingTrafficInParis_eng.csv", sep = ",")
 
 
+### PREP WORK ON BOTH DF TO BE MERGED
 # Cycling DF: separating date, year, month, day and hour/time from the ‘Date and time of count’ column 
 # and converting date column to datetime
 df["date_cycl"] = pd.to_datetime(df['Date and time of count'].str[:10])
@@ -21,25 +22,31 @@ df_final_W["Date and time of count"] = pd.to_datetime(df_final_W["Date and time 
 df_W.rename({'Date_original': 'Date and time of count'}, axis=1, inplace=True)
 df_W['Date and time of count'] = df_W['Date and time of count'].str.replace("T"," ")
 
-
 # Concatenating the two datasets based on column ‘date and time of count’
 df_final_W = df.merge(right = df_W, on = 'Date and time of count', how = 'left') 
 df_final_W.head()
 
-## Temp + Rain infos only available every 3H, i.e. 2:00, 5:00, 8:00, 11:00, 14:00, 17:00, 20:00, 23:00 > Following strategy: sum every 3H of column ‘Hourly count’ to match with Weather 
+
+## Temp + Rain infos only different hours not always corresponding to traffic cycling DF > Following strategy: fill in missing values with next precedent available information
 # Sorting final DF based on columns 'Counter ID' and ‘Date and time of count' and resetting index
 df_final_W.sort_values(by=['Counter ID','Date and time of count'], inplace = True)
 df_final_W = df_final_W.reset_index()
+df_final_W=df_final_W.drop("index", axis='columns')
 df_final_W.head()
 
+# Filling in missing values with the next previous information available
+df_final_W = df_final_W.fillna(method='ffill')
+df_final_W.head() 
 
-# Creating new column 'sum_hourly_count' for suming up every 3H hourly count (corresponding to DF Weather)
-df_final_W["Sum_hourly_count_last3H"] = df_final_W["Hourly count"].rolling(3,min_periods=1).sum()
+# Last check on NaN
+nan_count = df_final_W.isna().sum()
+print(nan_count)
 
-# Test if when changing Counter ID, rolling sum is working
-Counter_HourlyCount_new = df_final_W[["Counter ID", "Date and time of count", "Hourly count","Sum_hourly_count_last3H"]]
-Counter_HourlyCount_new = Counter_HourlyCount_new[Counter_HourlyCount_new['Date and time of count'] == '2022-10-01 05:00:00+02:00']
-Counter_HourlyCount_new.head(25)
+# Exporting merged DF as a separate new one
+df_final_W.to_csv("WeatherAndTraffic.csv", index=False)
 
-### TO BE CONTINUED AS ISSUE WHEN FIRST HOUR OF A DATE IS 3AM (> SHOULD NOT TAKE LAST 3H IN THIS CASE
+
+### VIZ ON MERGED DF
+
+
 
