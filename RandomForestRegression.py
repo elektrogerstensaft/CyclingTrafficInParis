@@ -1,44 +1,52 @@
 import pandas as pd
-from sklearn.model_selection import train_test_split
+import numpy as np
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.metrics import r2_score, mean_squared_error
+from sklearn.metrics import mean_squared_error, mean_absolute_error
 import matplotlib.pyplot as plt
 
-df = pd.read_csv("CyclingTrafficInParis_eng.csv")
+# read data
+X_train = pd.read_csv("X_train.csv")
+X_test = pd.read_csv("X_test.csv")
+y_train = pd.read_csv("y_train.csv")
+y_test = pd.read_csv("y_test.csv")
 
-# DataPrep
-df["Date and time of count"] = pd.to_datetime(df["Date and time of count"], utc=True)
-df["Month"] = df["Date and time of count"].dt.month
-df["Day"] = df["Date and time of count"].dt.day
-df["Year"] = df["Date and time of count"].dt.year
-df["Hourly count"] = df["Hourly count"].astype(float)
+# create + train Random Forest Regression
+rfr = RandomForestRegressor(n_estimators=100, random_state=42)
+rfr.fit(X_train, np.ravel(y_train))
 
-daily_traffic = df.groupby(["Year", "Month", "Day"])["Hourly count"].sum().reset_index()
+# display the results of the score
+print("Trainings R^2 score:", rfr.score(X_train, np.ravel(y_train)))
+print("Test R^2 score:", rfr.score(X_test, np.ravel(y_test)))
 
-# Modelling + prediction daily
-feats = daily_traffic[["Year", "Month", "Day"]]
-target = daily_traffic["Hourly count"]
-
-X_train, X_test, y_train, y_test = train_test_split(feats, target, test_size=0.25, random_state=42)
-
-RFR = RandomForestRegressor(random_state=42)
-RFR.fit(X_train, y_train)
-predictions = RFR.predict(X_test)
-
-r2_daily = r2_score(y_test, predictions)
-mse_daily = mean_squared_error(y_test, predictions)
-
-print("Daily trend:")
-print(f"R² score: {r2_daily}")
-print(f"Mean Squared Error: {mse_daily}")
-
-#  scatterplot
-plt.figure(figsize=(8, 6))
-plt.scatter(y_test, predictions, color="blue")
-plt.xlabel("True values")
-plt.ylabel("Predicted values")
-plt.title("Daily cycle trend (RandomForestRegression)")
-
-plt.plot([y_test.min(), y_test.max()], [y_test.min(), y_test.max()], color="red", alpha = 0.6)
-
+# visualise predictions
+fig = plt.figure(figsize=(8, 8))
+pred_test = rfr.predict(X_test)
+plt.scatter(pred_test, y_test, c='cyan')
+plt.plot((y_test.min(), y_test.max()), (y_test.min(), y_test.max()), color="red", alpha=0.6)
+plt.xlabel("Predicted values")
+plt.ylabel("True values")
+plt.title("Random Forest Regression for bike countings")
 plt.show()
+
+# metrics
+y_pred_train_rfr = rfr.predict(X_train)
+y_pred_test_rfr = rfr.predict(X_test)
+
+mae_train_rfr = mean_absolute_error(y_train, y_pred_train_rfr)
+mse_train_rfr = mean_squared_error(y_train, y_pred_train_rfr)
+rmse_train_rfr = np.sqrt(mse_train_rfr)
+
+mae_test_rfr = mean_absolute_error(y_test, y_pred_test_rfr)
+mse_test_rfr = mean_squared_error(y_test, y_pred_test_rfr)
+rmse_test_rfr = np.sqrt(mse_test_rfr)
+
+# save results 
+data_rf = {"MAE Train data": [mae_train_rf],
+           "MAE Test data": [mae_test_rf],
+           "MSE Train data": [mse_train_rf],
+           "MSE Test data": [mse_test_rf],
+           "RMSE Train data": [rmse_train_rf],
+           "RMSE Test data": [rmse_test_rf]}
+
+df_rf = pd.DataFrame(data_rf, index=["Random Forest every variable"])
+print(df_rf)
