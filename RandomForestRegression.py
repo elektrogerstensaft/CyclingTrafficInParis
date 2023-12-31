@@ -21,7 +21,7 @@ print("Test R^2 score:", rfr.score(X_test, np.ravel(y_test)))
 # visualise predictions
 fig = plt.figure(figsize=(8, 8))
 pred_test = rfr.predict(X_test)
-plt.scatter(pred_test, y_test, c='cyan')
+plt.scatter(pred_test, y_test, c="#8DA0CB")
 plt.plot((y_test.min(), y_test.max()), (y_test.min(), y_test.max()), color="red", alpha=0.6)
 plt.xlabel("Predicted values")
 plt.ylabel("True values")
@@ -41,12 +41,12 @@ mse_test_rfr = mean_squared_error(y_test, y_pred_test_rfr)
 rmse_test_rfr = np.sqrt(mse_test_rfr)
 
 # save results 
-data_rf = {"MAE Train data": [mae_train_rf],
-           "MAE Test data": [mae_test_rf],
-           "MSE Train data": [mse_train_rf],
-           "MSE Test data": [mse_test_rf],
-           "RMSE Train data": [rmse_train_rf],
-           "RMSE Test data": [rmse_test_rf]}
+data_rf = {"MAE Train data": [mae_train_rfr],
+           "MAE Test data": [mae_test_rfr],
+           "MSE Train data": [mse_train_rfr],
+           "MSE Test data": [mse_test_rfr],
+           "RMSE Train data": [rmse_train_rfr],
+           "RMSE Test data": [rmse_test_rfr]}
 
 df_rf = pd.DataFrame(data_rf, index=["Random Forest every variable"])
 print(df_rf)
