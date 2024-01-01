@@ -108,7 +108,7 @@ X_test_enc_sc.to_csv("X_test.csv", index=False)
 y_train.to_csv("y_train.csv", index=False)
 y_test.to_csv("y_test.csv", index=False)
 
-
+"""
 from sklearn.linear_model import LinearRegression
 regressor = LinearRegression()
 
@@ -142,4 +142,4 @@ plt.ylabel("True values")
 plt.title("Linear regression for counted bicycles")
 plt.show();
 
-
+"""
