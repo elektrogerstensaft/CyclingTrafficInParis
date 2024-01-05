@@ -4,30 +4,16 @@ from sklearn.model_selection import train_test_split
 
 df = pd.read_csv("WeatherAndTraffic.csv", sep = ",")
 
-df["date"] = pd.to_datetime(df["date"], utc= True)
-df["weekday"] = df["date"].dt.dayofweek
 df["time"] = df['time'].str[:2].astype(int)
 
-df.loc[df["Counter name"].str.contains("N-S"), "direction"] = "South"
-df.loc[df["Counter name"].str.contains("NE-SO"), "direction"] = "Southwest"
-df.loc[df["Counter name"].str.contains("E-O"), "direction"] = "West"
-df.loc[df["Counter name"].str.contains("SE-NO"), "direction"] = "Northwest"
-df.loc[df["Counter name"].str.contains("S-N"), "direction"] = "North"
-df.loc[df["Counter name"].str.contains("SO-NE"), "direction"] = "Northeast"
-df.loc[df["Counter name"].str.contains("O-E"), "direction"] = "East"
-df.loc[df["Counter name"].str.contains("NO-SE"), "direction"] = "Southeast"
-
-#df.info()
-
-feats = df[["time", "weekday", "year_month", "day", "Latitude", "Longitude", "Humidity", "Temp_°C", "Rain_last3H", "direction"]]
+feats = df[["time", "weekday_of_count", "year_month", "day", "Latitude", "Longitude", "Humidity", "Temp_°C", "Rain_last3H", "direction","holiday"]]
 target = df["Hourly count"]
 
-print(feats.time.head(15))
 X_train, X_test, y_train, y_test = train_test_split(feats, target, test_size=0.25, random_state=42)
 
 cat = ["direction", "year_month"]
 num = ["day", "Latitude", "Longitude","Humidity","Temp_°C","Rain_last3H"]
-circular = ["time", "weekday"]
+circular = ["time", "weekday_of_count"]
 
 from sklearn.preprocessing import OneHotEncoder
 ohe = OneHotEncoder(drop="first",  sparse_output=False)
@@ -51,15 +37,15 @@ circular_train.loc[:, 'cos_hour'] = circular_train.loc[:, 'time'].apply(lambda h
 circular_test.loc[:, 'sin_hour'] = circular_test.loc[:, 'time'].apply(lambda h : np.sin(2 * np.pi * h / 24))
 circular_test.loc[:, 'cos_hour'] = circular_test.loc[:, 'time'].apply(lambda h : np.cos(2 * np.pi * h / 24))
 
-circular_train.loc[:, 'sin_weekday'] = circular_train.loc[:, 'weekday'].apply(lambda h : np.sin(2 * np.pi * h / 7))
-circular_train.loc[:, 'cos_weekday'] = circular_train.loc[:, 'weekday'].apply(lambda h : np.cos(2 * np.pi * h / 7))
+circular_train.loc[:, 'sin_weekday'] = circular_train.loc[:, 'weekday_of_count'].apply(lambda h : np.sin(2 * np.pi * h / 7))
+circular_train.loc[:, 'cos_weekday'] = circular_train.loc[:, 'weekday_of_count'].apply(lambda h : np.cos(2 * np.pi * h / 7))
 
-circular_test.loc[:, 'sin_weekday'] = circular_test.loc[:, 'weekday'].apply(lambda h : np.sin(2 * np.pi * h / 7))
-circular_test.loc[:, 'cos_weekday'] = circular_test.loc[:, 'weekday'].apply(lambda h : np.cos(2 * np.pi * h / 7))
+circular_test.loc[:, 'sin_weekday'] = circular_test.loc[:, 'weekday_of_count'].apply(lambda h : np.sin(2 * np.pi * h / 7))
+circular_test.loc[:, 'cos_weekday'] = circular_test.loc[:, 'weekday_of_count'].apply(lambda h : np.cos(2 * np.pi * h / 7))
 
 
-circular_test = circular_test.drop(['time','weekday'],axis = 1)
-circular_train = circular_train.drop(['time','weekday'],axis = 1)
+circular_test = circular_test.drop(['time','weekday_of_count'],axis = 1)
+circular_train = circular_train.drop(['time','weekday_of_count'],axis = 1)
 
 #the following part should not be necessary, but the previous operations somehow messed with the indexes 
 X_train_num = X_train[num]

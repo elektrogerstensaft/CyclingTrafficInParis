@@ -1,8 +1,7 @@
 import pandas as pd
 
 df = pd.read_csv("comptage-velo-donnees-compteurs.csv", sep = ";")
-print(df.info())
-df["Date et heure de comptage"] = pd.to_datetime(df["Date et heure de comptage"])
+#print(df.info())
 
 ## Is this part still relevant for the preparation?
 # Boxplot of all Hourly counts
@@ -29,10 +28,6 @@ drop_cols = ["Lien vers photo du site de comptage", "ID Photos", "test_lien_vers
              "id_photo_1", "url_sites", "type_dimage"]
 df.drop(columns=drop_cols, inplace=True)
 
-# erasing data before October 2022
-date_threshold = pd.to_datetime('2022-10-01 00:00:00+01:00', utc=True)
-df = df[df["Date et heure de comptage"] >= date_threshold]
-
 # translate columns
 translation = {"Identifiant du compteur": "Counter ID",
                "Nom du compteur": "Counter name",
@@ -57,6 +52,35 @@ df_en = df_en.dropna()
 
 # splitting geo coordinates into Latitude/Longitude
 df_en[["Latitude", "Longitude"]] = df_en["Geographic coordinates"].str.split(",", expand=True)
+
+df_en["Date and time of count"] = pd.to_datetime(df_en["Date and time of count"], utc = True)
+# erasing data before October 2022
+date_threshold = pd.to_datetime('2022-10-01 00:00:00+01:00', utc=True)
+df_en = df_en[df_en["Date and time of count"] >= date_threshold]
+print(df_en.info())
+
+df_en["date"] = df_en["Date and time of count"].dt.date
+df_en["weekday_of_count"] = df_en["Date and time of count"].dt.dayofweek
+
+#creating a column that combines ISO week and year, to handle weeks in different years
+df_en["week_year"] = df_en["Date and time of count"].dt.year.astype(str) +"-"+ df_en["Date and time of count"].dt.isocalendar().week.astype(str)
+df_en["hour_of_day"] = df_en["Date and time of count"].dt.hour
+df_en["day"] = df_en["Date and time of count"].dt.day
+
+df_en.loc[df_en["Counter name"].str.contains("N-S"), "direction"] = "South"
+df_en.loc[df_en["Counter name"].str.contains("NE-SO"), "direction"] = "Southwest"
+df_en.loc[df_en["Counter name"].str.contains("E-O"), "direction"] = "West"
+df_en.loc[df_en["Counter name"].str.contains("SE-NO"), "direction"] = "Northwest"
+df_en.loc[df_en["Counter name"].str.contains("S-N"), "direction"] = "North"
+df_en.loc[df_en["Counter name"].str.contains("SO-NE"), "direction"] = "Northeast"
+df_en.loc[df_en["Counter name"].str.contains("O-E"), "direction"] = "East"
+df_en.loc[df_en["Counter name"].str.contains("NO-SE"), "direction"] = "Southeast"
+
+#importing school and public holidays
+df_holidays = pd.read_csv("holidays.csv", sep = ",")
+df_holidays.date = pd.to_datetime(df_holidays.date, format="%d.%m.%Y").dt.date
+
+df_en = df_en.merge(right = df_holidays, on='date', how='left')
 
 # export the df as a separate new one
 df_en.to_csv("CyclingTrafficInParis_eng.csv", index=False)

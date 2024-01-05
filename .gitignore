@@ -29,3 +29,7 @@ X_test_Weather.csv
 X_train_Weather.csv
 y_test_Weather.csv
 y_train_Weather.csv
+holidays.csv
+Visualisations/Decision tree importance_weather.png
+Visualisations/Decision tree predictions_weather.png
+Counters.csv

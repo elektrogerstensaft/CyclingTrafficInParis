@@ -17,35 +17,13 @@ Latitude
 Longitude
 Technical counter ID
 Month and year of count
-"""
 
-df["Date and time of count"] = pd.to_datetime(df["Date and time of count"], utc= True)
-df["Counting site installation date"] = pd.to_datetime(df["Counting site installation date"])
-
-df["weekday_of_count"] = df["Date and time of count"].dt.dayofweek
-
-df["week_year"] = df["Date and time of count"].dt.year.astype(str) +"-"+ df["Date and time of count"].dt.isocalendar().week.astype(str)
-df["hour_of_day"] = df["Date and time of count"].dt.hour
-df["day"] = df["Date and time of count"].dt.day
-
-df.loc[df["Counter name"].str.contains("N-S"), "direction"] = "South"
-df.loc[df["Counter name"].str.contains("NE-SO"), "direction"] = "Southwest"
-df.loc[df["Counter name"].str.contains("E-O"), "direction"] = "West"
-df.loc[df["Counter name"].str.contains("SE-NO"), "direction"] = "Northwest"
-df.loc[df["Counter name"].str.contains("S-N"), "direction"] = "North"
-df.loc[df["Counter name"].str.contains("SO-NE"), "direction"] = "Northeast"
-df.loc[df["Counter name"].str.contains("O-E"), "direction"] = "East"
-df.loc[df["Counter name"].str.contains("NO-SE"), "direction"] = "Southeast"
-
-df.dropna(inplace = True)
-
-"""
     The variables: ~ Counter ID, Counter name, Counting site name Counting site ID, Counting site installation date, Technical counter ID ~ 
-    were not taken into the dataset as the encode the same information as the geo-coordinates over and over again.
+    were not taken into the dataset as they encode the same information as the geo-coordinates over and over again.
     ~ Date and time of count ~ is encoded in the numerical variables together with Longitude and Latitude
 """
-#dropping the ~ week_year ~ for the initial tests, as ~ Month and year of count ~ contains similar information with less depth
-feats = df.drop(["Counter ID", "Counter name", "Counting site ID", "Counting site name", "Counting site installation date", "Technical counter ID", "week_year"],axis =1)
+
+feats = df.drop(["Counter ID", "Counter name", "Counting site ID", "Counting site name", "Counting site installation date", "Technical counter ID"],axis =1)
 feats.rename(columns = {'Month and year of count':'month_year'}, inplace = True) 
 target = df["Hourly count"]
 
@@ -108,11 +86,16 @@ X_test_enc_sc.to_csv("X_test.csv", index=False)
 y_train.to_csv("y_train.csv", index=False)
 y_test.to_csv("y_test.csv", index=False)
 
-"""
+
 from sklearn.linear_model import LinearRegression
 regressor = LinearRegression()
 
 regressor.fit(X_train_enc_sc, y_train)
+
+print("Train score with all variables", regressor.score(X_train, y_train))
+print("Test score with all variables", regressor.score(X_test, y_test))
+
+"""
 print(regressor.intercept_)
 print(regressor.coef_)
 
