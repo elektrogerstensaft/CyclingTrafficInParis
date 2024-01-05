@@ -61,6 +61,10 @@ fig.show()
 fig = px.box(df_top3, y ="Hourly count", x = "Month and year of count", color = "Counter name", title = "Top 3 counters hourly counts histogram")
 fig.show()
 """
+print(df_top3.groupby("Month and year of count", as_index =False)["Hourly count"].sum().head())
+#Lineplot of top 3 Hourly counts
+fig = px.line(df_top3.groupby("Month and year of count", as_index =False)["Hourly count"].sum(), y ="Hourly count", x = "Month and year of count", title = "Top 3 counters monthly counts")
+fig.show()
 """
 #Histogram of all Hourly count values, logarithmic y axis
 fig = px.histogram(df["Hourly count"],
@@ -141,6 +145,7 @@ fig.update_layout(
 )
 fig.show()
 """
+"""
 fig = px.line(df.loc[(df["Counter name"].isin(top3)) & (df["week_year"] == "2023-23")].sort_values("Date and time of count"),
     x="Date and time of count",
     y="Hourly count",
@@ -154,3 +159,4 @@ fig = px.line(df.loc[(df["Counter name"] == top3[0]) & (df["week_year"] == "2023
     title="Hourly of count of bicycles at " + top3[0],
     color = "weekday_of_count")
 fig.show()
+"""

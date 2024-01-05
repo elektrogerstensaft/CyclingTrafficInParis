@@ -20,7 +20,7 @@ df_W["time"] = df_W.Date.str[11:19]
 df_W.rename({'Date': 'Date_original'}, axis=1, inplace=True)
 
 # Resizing the DF by focusing on two variables: temperature and precipitations
-drop_cols = ["ID OMM station", "Pression au niveau mer", "Variation de pression en 3 heures",
+drop_cols = ["department (code)","ID OMM station", "Pression au niveau mer", "Variation de pression en 3 heures",
              "Type de tendance barométrique", "Direction du vent moyen 10 mn", "Vitesse du vent moyen 10 mn",
             "Point de rosée","Visibilité horizontale","Temps présent","Temps passé 1",
             "Temps passé 2","Nebulosité totale","Hauteur de la base des nuages de l'étage inférieur",
@@ -34,7 +34,7 @@ drop_cols = ["ID OMM station", "Pression au niveau mer", "Variation de pression 
             "Température du thermomètre mouillé","Rafale sur les 10 dernières minutes","Rafales sur une période",
             "Periode de mesure de la rafale","Etat du sol","Hauteur totale de la couche de neige, glace, autre au sol",
             "Hauteur de la neige fraîche","Periode de mesure de la neige fraiche","Phénomène spécial 1",
-            "Phénomène spécial 2","Phénomène spécial 3","Phénomène spécial 4","Nébulosité couche nuageuse 1",
+            "Phénomène spécial 2","Phénomène spécial 3","Phénomène spécial 4","Nébulosité  des nuages de l' étage inférieur","Nébulosité couche nuageuse 1",
             "Type nuage 1","Hauteur de base 1","Nébulosité couche nuageuse 2","Type nuage 2","Hauteur de base 2",
             "Nébulosité couche nuageuse 3","Type nuage 3","Hauteur de base 3","Nébulosité couche nuageuse 4",
              "Type nuage 4","Hauteur de base 4","Coordonnees","Nom","Type de tendance barométrique.1",
@@ -52,11 +52,6 @@ df_W.drop(columns=drop_cols, inplace=True)
 df_W.rename(columns={"Humidité": "Humidity","Précipitations dans les 3 dernières heures": "Rain_last3H",
                     "Température (°C)": "Temp_°C"
                     }, inplace=True)
-"""
-# Droping last column not to be used
-df_W.columns = df_W.columns.str.replace("[' é']", "_", regex=True)
-df_W.drop(columns='N_bulosit___des_nuages_de_l___tage_inf_rieur', inplace=True)
-
 
 ## Prep work on temperatures
 # Adding a new column to calculate the average temperature per day
@@ -65,7 +60,7 @@ df_W = df_W.join(
         .transform('mean')  # Calculate the mean
         .rename(columns='Temp_average'.format)  # Rename columns 
 )
-"""
+
 
 # Defining classes/ clusters for the temperatures and average temperatures
 def Temp_classes_average(value):
@@ -166,8 +161,9 @@ plt.figure(figsize=(16,12))
 plt.suptitle('Evolution of temperatures, precipitations and humidity from October 2022 to December 2023', fontsize=18)
 
 plt.subplot(221)
-Temp_aver_per_month = sns.lineplot(x = df_W['year_month'] , y = df_W['Temp_°C'],
-                                data = df_W.groupby(['year_month'])['Temp_°C'].mean(),marker='o',color='red',
+Temp_aver_per_month = sns.lineplot(x = 'year_month' , y = 'Temp_°C',
+                                data = df_W.groupby(['year_month'], as_index=False)['Temp_°C'].mean(),
+                                marker='o',color='red',
                                 sort=False
                                 )
 
@@ -178,7 +174,7 @@ plt.xticks(rotation=45)
 
 plt.subplot(222)
 Rain_aver_per_month = sns.lineplot(x = df_W['year_month'] , y = df_W['Rain_last3H'],
-                                data = df_W.groupby(['year_month'])['Rain_last3H'].mean(),marker='o',sort=False)
+                                data = df_W.groupby(['year_month'], as_index=False)['Rain_last3H'].mean(),marker='o',sort=False)
 Rain_aver_per_month.set_title('Evolution of precipitations')
 Rain_aver_per_month.set_ylabel('precipitation in average [mm]');
 plt.xticks(rotation=45)
@@ -187,7 +183,7 @@ plt.xticks(rotation=45)
 
 plt.subplot(223)
 Hum_aver_per_month = sns.lineplot(x = df_W['year_month'] , y = df_W['Humidity'],
-                                data = df_W.groupby(['year_month'])['Humidity'].mean(),marker='o',sort=False)
+                                data = df_W.groupby(['year_month'], as_index=False)['Humidity'].mean(),marker='o',sort=False)
 Hum_aver_per_month.set_title('Evolution of humidity')
 Hum_aver_per_month.set_ylabel('Humidity level in average [%]');
 plt.xticks(rotation=45)
@@ -199,5 +195,4 @@ plt.subplots_adjust(left=0.1,
                     top=0.9, 
                     wspace=0.2, 
                     hspace=0.4)
-
-
+plt.show();

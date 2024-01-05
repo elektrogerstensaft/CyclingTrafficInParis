@@ -1,29 +1,23 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 
-X_train = pd.read_csv("X_train.csv")
-X_test = pd.read_csv("X_test.csv")
-y_train = pd.read_csv("y_train.csv")
-y_test = pd.read_csv("y_test.csv")
+X_train = pd.read_csv("X_train_Weather.csv")
+X_test = pd.read_csv("X_test_Weather.csv")
+y_train = pd.read_csv("y_train_Weather.csv")
+y_test = pd.read_csv("y_test_Weather.csv")
 
-
-from sklearn.linear_model import LinearRegression
-regressor = LinearRegression()
-
-regressor.fit(X_train, y_train)
-
-print("Linear Train score with all variables", regressor.score(X_train, y_train))
-print("Linear Test score with all variables", regressor.score(X_test, y_test))
-"""
 from sklearn.tree import DecisionTreeRegressor 
 regressor = DecisionTreeRegressor(random_state=42) 
-
 regressor.fit(X_train, y_train)
+
+regressor_random_splitter = DecisionTreeRegressor(random_state=42, min_samples_leaf= 10) 
+regressor_random_splitter.fit(X_train, y_train)
 
 print("Train score with all variables", regressor.score(X_train, y_train))
 print("Test score with all variables", regressor.score(X_test, y_test))
-"""
-import sklearn.metrics
+print("Train score with all variables", regressor_random_splitter.score(X_train, y_train))
+print("Test score with all variables", regressor_random_splitter.score(X_test, y_test))
+
 from sklearn.metrics import mean_squared_error
 from sklearn.metrics import mean_absolute_error
 
@@ -32,6 +26,9 @@ from sklearn.metrics import mean_absolute_error
 y_pred_decision_tree = regressor.predict(X_test)
 y_pred_train_decision_tree = regressor.predict(X_train)
 
+y_pred_decision_tree_splitter = regressor_random_splitter.predict(X_test)
+y_pred_train_decision_tree_splitter = regressor_random_splitter.predict(X_train)
+
 # Metrics
 
 # Training set
@@ -39,20 +36,28 @@ mae_decision_tree_train = mean_absolute_error(y_train, y_pred_train_decision_tre
 mse_decision_tree_train = mean_squared_error(y_train, y_pred_train_decision_tree, squared=True)
 rmse_decision_tree_train = mean_squared_error(y_train, y_pred_train_decision_tree, squared=False)
 
+mae_decision_tree_train_splitter = mean_absolute_error(y_train, y_pred_train_decision_tree_splitter)
+mse_decision_tree_train_splitter = mean_squared_error(y_train, y_pred_train_decision_tree_splitter, squared=True)
+rmse_decision_tree_train_splitter = mean_squared_error(y_train, y_pred_train_decision_tree_splitter, squared=False)
+
 # Test set
 mae_decision_tree_test = mean_absolute_error(y_test, y_pred_decision_tree)
 mse_decision_tree_test = mean_squared_error(y_test, y_pred_decision_tree, squared=True)
 rmse_decision_tree_test = mean_squared_error(y_test, y_pred_decision_tree, squared=False)
 
+mae_decision_tree_test_splitter = mean_absolute_error(y_test, y_pred_decision_tree_splitter)
+mse_decision_tree_test_splitter = mean_squared_error(y_test, y_pred_decision_tree_splitter, squared=True)
+rmse_decision_tree_test_splitter = mean_squared_error(y_test, y_pred_decision_tree_splitter, squared=False)
+
 data = {
-    'MAE train': [mae_decision_tree_train],
-    'MAE test': [mae_decision_tree_test],
-    'MSE train': [mse_decision_tree_train],
-    'MSE test': [mse_decision_tree_test],
-    'RMSE train': [rmse_decision_tree_train],
-    'RMSE test': [rmse_decision_tree_test]
+    'MAE train': [mae_decision_tree_train, mae_decision_tree_train_splitter],
+    'MAE test': [mae_decision_tree_test, mae_decision_tree_test_splitter],
+    'MSE train': [mse_decision_tree_train, mse_decision_tree_train_splitter],
+    'MSE test': [mse_decision_tree_test, mse_decision_tree_test_splitter],
+    'RMSE train': [rmse_decision_tree_train, rmse_decision_tree_train_splitter],
+    'RMSE test': [rmse_decision_tree_test, mse_decision_tree_test_splitter]
 }
-df = pd.DataFrame(data, index=["Decision Tree with all variables", "Decision Tree with 4 variables"])
+df = pd.DataFrame(data, index=["First Model", "Second Model"])
 print(df.head())
 
 
@@ -76,7 +81,7 @@ tuning_model.fit(X,y)
 print(tuning_model.best_params_)
 print(tuning_model.best_score_)
 """
-
+"""
 tuned_hyper_model = DecisionTreeRegressor(max_depth = 3,
                                          max_features = None,
                                          max_leaf_nodes = None,
@@ -92,9 +97,7 @@ plt.xlabel("Predicted values")
 plt.ylabel("True values")
 plt.title("Decision tree regression with hyper tuned model for counted bicycles")
 plt.show();
-
-#print("Train score with all variables for hyper tuned model", tuned_hyper_model.score(X_train, y_train))
-#print("Test score with all variables for hyper tuned model", tuned_hyper_model.score(X_test, y_test))
+"""
 
 """
 from sklearn.tree import plot_tree # tree diagram
@@ -108,8 +111,8 @@ plot_tree(regressor,
           rounded = True)
 plt.show();
 """
-
 """
+
 feat_importances = pd.DataFrame(regressor.feature_importances_, index=X_train.columns, columns=["Importance"])
 feat_importances.sort_values(by='Importance', ascending=False, inplace=True)
 feat_importances.plot(kind='bar', figsize=(10,10))
