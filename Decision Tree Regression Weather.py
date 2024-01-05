@@ -7,10 +7,10 @@ y_train = pd.read_csv("y_train_Weather.csv")
 y_test = pd.read_csv("y_test_Weather.csv")
 
 from sklearn.tree import DecisionTreeRegressor 
-regressor = DecisionTreeRegressor(random_state=42, min_samples_split= 10) 
+regressor = DecisionTreeRegressor(random_state=42) 
 regressor.fit(X_train, y_train)
 
-regressor_random_splitter = DecisionTreeRegressor(random_state=42, min_samples_split= 5) 
+regressor_random_splitter = DecisionTreeRegressor(random_state=42, min_samples_leaf= 10) 
 regressor_random_splitter.fit(X_train, y_train)
 
 print("Train score with all variables", regressor.score(X_train, y_train))
@@ -98,8 +98,6 @@ plt.ylabel("True values")
 plt.title("Decision tree regression with hyper tuned model for counted bicycles")
 plt.show();
 """
-#print("Train score with all variables for hyper tuned model", tuned_hyper_model.score(X_train, y_train))
-#print("Test score with all variables for hyper tuned model", tuned_hyper_model.score(X_test, y_test))
 
 """
 from sklearn.tree import plot_tree # tree diagram

@@ -11,7 +11,7 @@ target = df["Hourly count"]
 
 X_train, X_test, y_train, y_test = train_test_split(feats, target, test_size=0.25, random_state=42)
 
-cat = ["direction", "year_month"]
+cat = ["direction", "year_month","holiday"]
 num = ["day", "Latitude", "Longitude","Humidity","Temp_°C","Rain_last3H"]
 circular = ["time", "weekday_of_count"]
 
@@ -42,7 +42,6 @@ circular_train.loc[:, 'cos_weekday'] = circular_train.loc[:, 'weekday_of_count']
 
 circular_test.loc[:, 'sin_weekday'] = circular_test.loc[:, 'weekday_of_count'].apply(lambda h : np.sin(2 * np.pi * h / 7))
 circular_test.loc[:, 'cos_weekday'] = circular_test.loc[:, 'weekday_of_count'].apply(lambda h : np.cos(2 * np.pi * h / 7))
-
 
 circular_test = circular_test.drop(['time','weekday_of_count'],axis = 1)
 circular_train = circular_train.drop(['time','weekday_of_count'],axis = 1)
