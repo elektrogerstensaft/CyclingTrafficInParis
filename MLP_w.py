@@ -44,9 +44,9 @@ print(df_mlp)
 # visualise predictions
 plt.figure(figsize=(8, 8))
 pred_test_mlp = mlp.predict(X_test)
-plt.scatter(pred_test_mlp, y_test, c="teal")
+plt.scatter(pred_test_mlp, y_test, c="darkorchid")
 plt.plot((y_test.min(), y_test.max()), (y_test.min(), y_test.max()), color="red", alpha=0.6)
 plt.xlabel("Predicted values")
 plt.ylabel("True values")
-plt.title("MLP Regression for bike countings")
+plt.title("MLP for bike countings + weather")
 plt.show();
