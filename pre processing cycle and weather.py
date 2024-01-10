@@ -4,16 +4,14 @@ from sklearn.model_selection import train_test_split
 
 df = pd.read_csv("WeatherAndTraffic.csv", sep = ",")
 
-df["time"] = df['time'].str[:2].astype(int)
-
-feats = df[["time", "weekday_of_count", "year_month", "day", "Latitude", "Longitude", "Humidity", "Temp_°C", "Rain_last3H", "direction","holiday"]]
+feats = df[["hour_of_day", "weekday_of_count", "Month and year of count", "day", "Latitude", "Longitude", "Humidity", "Temp_°C", "Rain_last3H", "direction","holiday"]]
 target = df["Hourly count"]
 
 X_train, X_test, y_train, y_test = train_test_split(feats, target, test_size=0.25, random_state=42)
 
-cat = ["direction", "year_month","holiday"]
+cat = ["direction", "Month and year of count","holiday"]
 num = ["day", "Latitude", "Longitude","Humidity","Temp_°C","Rain_last3H"]
-circular = ["time", "weekday_of_count"]
+circular = ["hour_of_day", "weekday_of_count"]
 
 from sklearn.preprocessing import OneHotEncoder
 ohe = OneHotEncoder(drop="first",  sparse_output=False)
@@ -31,11 +29,11 @@ X_test[num] = sc.transform(X_test[num])
 circular_train = X_train[circular]
 circular_test = X_test[circular]
 
-circular_train.loc[:, 'sin_hour'] = circular_train.loc[:, 'time'].apply(lambda h : np.sin(2 * np.pi * h / 24))
-circular_train.loc[:, 'cos_hour'] = circular_train.loc[:, 'time'].apply(lambda h : np.cos(2 * np.pi * h / 24))
+circular_train.loc[:, 'sin_hour'] = circular_train.loc[:, 'hour_of_day'].apply(lambda h : np.sin(2 * np.pi * h / 24))
+circular_train.loc[:, 'cos_hour'] = circular_train.loc[:, 'hour_of_day'].apply(lambda h : np.cos(2 * np.pi * h / 24))
 
-circular_test.loc[:, 'sin_hour'] = circular_test.loc[:, 'time'].apply(lambda h : np.sin(2 * np.pi * h / 24))
-circular_test.loc[:, 'cos_hour'] = circular_test.loc[:, 'time'].apply(lambda h : np.cos(2 * np.pi * h / 24))
+circular_test.loc[:, 'sin_hour'] = circular_test.loc[:, 'hour_of_day'].apply(lambda h : np.sin(2 * np.pi * h / 24))
+circular_test.loc[:, 'cos_hour'] = circular_test.loc[:, 'hour_of_day'].apply(lambda h : np.cos(2 * np.pi * h / 24))
 
 circular_train.loc[:, 'sin_weekday'] = circular_train.loc[:, 'weekday_of_count'].apply(lambda h : np.sin(2 * np.pi * h / 7))
 circular_train.loc[:, 'cos_weekday'] = circular_train.loc[:, 'weekday_of_count'].apply(lambda h : np.cos(2 * np.pi * h / 7))
@@ -43,8 +41,8 @@ circular_train.loc[:, 'cos_weekday'] = circular_train.loc[:, 'weekday_of_count']
 circular_test.loc[:, 'sin_weekday'] = circular_test.loc[:, 'weekday_of_count'].apply(lambda h : np.sin(2 * np.pi * h / 7))
 circular_test.loc[:, 'cos_weekday'] = circular_test.loc[:, 'weekday_of_count'].apply(lambda h : np.cos(2 * np.pi * h / 7))
 
-circular_test = circular_test.drop(['time','weekday_of_count'],axis = 1)
-circular_train = circular_train.drop(['time','weekday_of_count'],axis = 1)
+circular_test = circular_test.drop(['hour_of_day','weekday_of_count'],axis = 1)
+circular_train = circular_train.drop(['hour_of_day','weekday_of_count'],axis = 1)
 
 #the following part should not be necessary, but the previous operations somehow messed with the indexes 
 X_train_num = X_train[num]

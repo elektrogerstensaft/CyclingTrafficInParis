@@ -9,7 +9,7 @@ from sklearn.metrics import mean_squared_error
 #from sklearn.datasets import make_friedman1
 from sklearn.ensemble import GradientBoostingRegressor
 
-gbr = GradientBoostingRegressor(n_estimators=100, learning_rate=0.2, max_depth=6, random_state=0, loss='squared_error').fit(X_train, np.ravel(y_train))
+gbr = GradientBoostingRegressor(n_estimators=100, learning_rate=0.1, max_depth=3, random_state=0, loss='squared_error').fit(X_train, np.ravel(y_train))
 #gbr_ae = GradientBoostingRegressor(n_estimators=100, learning_rate=0.2, max_depth=6, random_state=0, loss='squared_error').fit(X_train, np.ravel(y_train))
 
 print("Train score with all variables", gbr.score(X_train, np.ravel(y_train)))
