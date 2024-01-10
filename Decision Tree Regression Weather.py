@@ -7,10 +7,10 @@ y_train = pd.read_csv("y_train_Weather.csv")
 y_test = pd.read_csv("y_test_Weather.csv")
 
 from sklearn.tree import DecisionTreeRegressor 
-regressor = DecisionTreeRegressor(random_state=42) 
+regressor = DecisionTreeRegressor(random_state=42, min_samples_leaf = 25 ) 
 regressor.fit(X_train, y_train)
 
-regressor_random_splitter = DecisionTreeRegressor(random_state=42, min_samples_leaf= 10) 
+regressor_random_splitter = DecisionTreeRegressor(random_state=42, min_samples_leaf= 20) 
 regressor_random_splitter.fit(X_train, y_train)
 
 print("Train score with all variables", regressor.score(X_train, y_train))
