@@ -16,19 +16,21 @@ Technical counter ID
 Month and year of count
 """
 df = pd.read_csv("CyclingTrafficInParis_eng.csv")
-df_counter = df.drop(["Hourly count","Date and time of count","Month and year of count","Geographic coordinates"], axis = 1)
+df_counter = df.drop(["Hourly count","Date and time of count","Month and year of count","Geographic coordinates","date","weekday_of_count","week_year","hour_of_day","day","direction","holiday"], axis = 1)
+# Instead the Counters.csv from FirstPreparation.py could be used
 df_counter.drop_duplicates(inplace = True)
 df_counter.set_index("Counter name", inplace = True)
 
 df.drop(["Counter ID","Counting site installation date","Geographic coordinates", "Counting site ID"],
         axis = 1,
-        inplace = True) # Instead the Counters.csv from FirstPreparation.py could be used  
+        inplace = True)   
 
 #grouping by the Counter name, aggregation by sum of hourly counts 
 df = df.groupby(["Counter name"],as_index= True)["Hourly count"].sum()
 
 #merge the previous df with the Counter metadata df
-df_new = pd.concat([df, df_counter], axis=1)
+df_new = pd.concat([df, df_counter], axis=1)#
+print(df_new.info())
 df_new.set_index("Counter ID", inplace = True)
 
 #generating a GeoDataFrame 
@@ -45,10 +47,12 @@ fig = px.scatter_mapbox(gdf,
                         hover_name="Counting site name",
                         hover_data="Hourly count",
                         color_continuous_scale=px.colors.sequential.Viridis,
-                        zoom=12,
+                        zoom=12.35,
                         title = "Total counted bicycles in Paris")
 #fig.update_layout(mapbox_style="open-street-map") #tried this, but it was too dificult to see the dots on the colored map background
-fig.update_layout(mapbox_style="carto-positron") 
-fig.update_layout(margin={"r":100,"t":100,"l":100,"b":100})
+fig.update_layout(mapbox_style="carto-positron",
+                margin={"r":100,"t":100,"l":100,"b":100},
+                font=dict(size=18, color="Black"))
+
                     
 fig.show()

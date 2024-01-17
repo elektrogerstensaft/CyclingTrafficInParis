@@ -33,3 +33,8 @@ holidays.csv
 Visualisations/Decision tree importance_weather.png
 Visualisations/Decision tree predictions_weather.png
 Counters.csv
+RFR.sav
+Visualisations/RFR predictions.png
+Visualisations/RFR Feature importances.png
+RFR2.sav
+rfr load.py
