@@ -85,6 +85,26 @@ df_en = df_en.merge(right = df_holidays, on='date', how='left')
 # export the df as a separate new one
 df_en.to_csv("CyclingTrafficInParis_eng.csv", index=False)
 
+
+print(df_en.info())
+print(df_en.head(3))
+print(df_en.describe())
+
+df["Date and time of count"] = pd.to_datetime(df_en["Date and time of count"])
+
+print(df_en["Counter ID"].value_counts(), "\n")
+print(df_en["Counter name"].value_counts(), "\n")
+print(df_en["Counting site ID"].value_counts(), "\n")
+print(df_en["Counting site name"].value_counts(), "\n")
+print(df_en["Hourly count"].value_counts(), "\n")
+print(df_en["Date and time of count"].value_counts(), "\n")
+print(df_en["Counting site installation date"].value_counts(), "\n")
+print(df_en["Geographic coordinates"].value_counts(), "\n")
+print(df_en["Technical counter ID"].value_counts(), "\n")
+print(df_en["Month and year of count"].value_counts(), "\n")
+
+print(df_en.isna().sum())
+
 # generating a csv that stores information about the counter: (site/ technical counter) id, 
 # name, site name, geo latitude/longitude, installation date  
 df_counter = df_en.drop(["Hourly count", "Date and time of count", "Month and year of count", "Geographic coordinates"], 
