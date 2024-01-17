@@ -51,7 +51,7 @@ monthReduceDict =	{
 }
 df["Months reduced"] = df["Month and year of count"].map(monthReduceDict)
 
-#finding the top 3 counters and creating a dataframe only with them
+# finding the top 3 counters and creating a dataframe only with them
 df_top3 = df.groupby(["Counter name"],as_index= False)["Hourly count"].sum().sort_values("Hourly count", ascending = False).head(3)
 
 top3 = []
@@ -59,20 +59,32 @@ for x in df_top3["Counter name"]:
     top3.append(x)
 df_top3 = df.loc[df["Counter name"].isin(top3)]
 
-"""#Boxplot of all Hourly counts
+"""
+---
+The next section shows a large selection of plots to illustrate the different 
+counts, such as count per hour, per weekday, per month, etc.
+---
+"""
+
+"""
+#Boxplot of all Hourly counts
 
 fig = px.box(df, y ="Hourly count", x = "Months reduced", title = "All counters hourly counts")
 fig.update_layout(font=dict(size=20))
 fig.show()
 """
-"""#Boxplot of top 3 Hourly counts
+
+"""
+#Boxplot of top 3 Hourly counts
 
 fig = px.box(df_top3, y ="Hourly count", x = "Months reduced", color = "Counter name", title = "Top 3 counters hourly counts histogram")
 fig.update_layout(font=dict(size=20),legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01))
 
 fig.show()
 """
-"""#Lineplot of monthly top 3 Hourly counts
+
+"""
+#Lineplot of monthly top 3 Hourly counts
 
 fig = px.line(df_top3.groupby("Month and year of count", as_index =False)["Hourly count"].sum(),
                 y ="Hourly count",
@@ -80,7 +92,9 @@ fig = px.line(df_top3.groupby("Month and year of count", as_index =False)["Hourl
                 title = "Top 3 counters monthly counts")
 fig.show()
 """
-"""#Histogram of all Hourly count values, logarithmic y axis
+
+"""
+#Histogram of all Hourly count values, logarithmic y axis
 
 fig = px.histogram(df["Hourly count"],
                     x="Hourly count",
@@ -88,7 +102,9 @@ fig = px.histogram(df["Hourly count"],
                     title='Histogram of Hourly counts',)
 fig.show()
 """
-"""#Histogram of all Hourly count values, logarithmic y axis
+
+"""
+#Histogram of all Hourly count values, logarithmic y axis
 fig = px.histogram(df_top3,
                     #y="Hourly count",
                     x="Hourly count",
@@ -98,7 +114,9 @@ fig = px.histogram(df_top3,
 fig.update_layout(font=dict(size=20),legend=dict(yanchor="top", y=0.99, xanchor="right", x=0.99))
 fig.show()
 """
-"""# Heatmap of days with most traffic
+
+"""
+# Heatmap of days with most traffic
 
 grouped_multiple = df.groupby(['Month and year of count', 'day']).agg({'Hourly count': ["mean", "median"]})
 grouped_multiple.columns = ["Hourly_count_mean", "Hourly_count_median"]
@@ -118,7 +136,9 @@ fig.update_layout(
     font=dict(size=20))
 fig.show()
 """
-"""# Heatmap of days and months with most traffic
+
+"""
+# Heatmap of days and months with most traffic
 order = ["Sunday", "Saturday", "Friday", "Thursday", "Wednesday", "Tuesday","Monday"]
 
 grouped_multiple = df.groupby(["hour_of_day", 'weekday_of_count']).agg({'Hourly count': ["mean", "median","sum"]})
@@ -139,7 +159,9 @@ fig.update_layout(
     font=dict(size=20))
 fig.show()
 """
-"""#Lineplot of top 3 hourly counts in one random week
+
+"""
+# Lineplot of top 3 hourly counts in one random week
 fig = px.line(df.loc[(df["Counter name"].isin(top3)) & (df["week_year"] == "2023-23")].sort_values("Date and time of count"),
     x="Date and time of count",
     y="Hourly count",
@@ -150,7 +172,9 @@ fig.update_layout(
     font = dict(size=20))
 fig.show()
 """
-"""#Lineplot of top hourly counts in one random week
+
+"""
+# Lineplot of top hourly counts in one random week
 fig = px.line(df.loc[(df["Counter name"] == top3[0]) & (df["week_year"] == "2023-23")].sort_values("Date and time of count"),
     x="hour_of_day",
     y="Hourly count",
@@ -161,7 +185,9 @@ fig.update_layout(
     font = dict(size=20))
 fig.show()
 """
-"""#Plot of temperatures and holidays
+
+"""
+# Plot of temperatures and holidays
 df_w = pd.read_csv("WeatherAndTraffic.csv", sep = ",")
 
 grouped_multiple = df_w.groupby(["date","holiday"]).agg({"Hourly count": "sum", "Temp_°C":"mean"})
@@ -179,7 +205,9 @@ new_ticks = [i.get_text() for i in g.get_xticklabels()]
 plt.xticks(range(0, len(new_ticks), 15), new_ticks[::15])
 plt.show()
 """
-"""#Map plot of counted bicycles
+
+"""
+#M ap plot of counted bicycles
 import geopandas as gpd
 
 df_counter= pd.read_csv("Counters.csv", sep= ",")
@@ -191,18 +219,18 @@ df_reduced = df.drop(["Counter ID","Counting site installation date","Geographic
 #grouping by the Counter name, aggregation by sum of hourly counts 
 df_reduced = df_reduced.groupby(["Counter name"],as_index= True)["Hourly count"].sum()
 
-#merge the previous df with the Counter metadata df
+# merge the previous df with the Counter metadata df
 df_geo = pd.concat([df_reduced, df_counter], axis=1)
 df_geo.dropna(inplace=True)
 print(df_geo.info()) #some counters have counter IDs but no counts
 df_geo.set_index("Counter ID", inplace = True)
 
-#generating a GeoDataFrame 
+# generating a GeoDataFrame 
 gdf = gpd.GeoDataFrame(
     df_geo, geometry=gpd.points_from_xy(df_geo.Longitude, df_geo.Latitude), crs="EPSG:4326"
 )
 
-#creating a scatter plot on a map background
+# creating a scatter plot on a map background
 fig = px.scatter_mapbox(gdf,
                         lat=gdf.geometry.y,
                         lon=gdf.geometry.x,
@@ -220,16 +248,17 @@ fig.show()
 """
 
 
-"""#various subplots
+"""
+# various subplots
 from plotly.subplots import make_subplots
 
-# defining the colours for the plots
+# plot colour controller
 colour_hourly = "#8DA0CB"
 colour_day = "#6677B4"
 colour_monthly = "#385DAB"
 colour_seasonal = "#1F4788"
 
-# 1. Average cyclists per 2 hours
+## 1. Average cyclists per 2 hours
 df["hours"] = df["Date and time of count"].dt.hour // 2 * 2
 mean_cycle_hour = df.groupby("hours")["Hourly count"].mean().reset_index()
 mean_cycle_hour["Hourly count"] = round(mean_cycle_hour["Hourly count"], 2)
@@ -248,7 +277,7 @@ fig_hourly.update_layout(title="Average number of cyclists per day",
                          yaxis_title="",
                          xaxis=dict(tickvals=mean_cycle_hour["hours"], ticktext=hour_labels))
 
-# 2. Average cyclists per week
+## 2. Average cyclists per week
 df["weekday"] = df["Date and time of count"].dt.strftime("%A")
 
 # re-ordering the weekdays
@@ -269,7 +298,7 @@ fig_weekday.update_layout(title="Average number of cyclists per week",
                           xaxis_title="",
                           yaxis_title="")
 
-# 3. Total cyclists per month
+## 3. Total cyclists per month
 df["Month and year of count"] = df["Date and time of count"].dt.strftime("%Y-%m")
 amount_month = df.groupby("Month and year of count").size().reset_index(name="count")
 amount_month = round(amount_month, 0)
@@ -282,7 +311,7 @@ fig_month = go.Figure(go.Bar(x=amount_month["Month and year of count"],
 fig_month.update_layout(title="Total number of cyclists per month",
                         xaxis_title="",
                         yaxis_title="Amount of cyclists")
-# 4. Seasonal
+## 4. Seasonal
 seasons = {1: "Winter", 2: "Winter", 3: "Spring", 4: "Spring", 5: "Spring", 6: "Summer",
            7: "Summer", 8: "Summer", 9: "Autumn", 10: "Autumn", 11: "Autumn", 12: "Winter"}
 df["Season"] = pd.to_datetime(df["Month and year of count"]).dt.month.map(seasons)
@@ -307,7 +336,7 @@ fig_season.update_layout(title="Total number of entries per season",
                          xaxis_title="Season",
                          yaxis_title="Total entries")
 
-# 5. Subplots
+## 5. Subplots
 fig = make_subplots(rows=2, cols=2,
                     subplot_titles=("Average number of cyclists per day",
                                     "Average number of cyclists per week",
