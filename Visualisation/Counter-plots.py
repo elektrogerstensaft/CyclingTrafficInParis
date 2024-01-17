@@ -5,13 +5,13 @@ from plotly.subplots import make_subplots
 df = pd.read_csv("CyclingTrafficInParis_eng.csv")
 df["Date and time of count"] = pd.to_datetime(df["Date and time of count"].str.split("+").str[0])
 
-# defining the colours for the plots
+## plot colour controller
 colour_hourly = "#8DA0CB"
 colour_day = "#6677B4"
 colour_monthly = "#385DAB"
 colour_seasonal = "#1F4788"
 
-# 1. Average cyclists per 2 hours
+## 1. Average cyclists per 2 hours
 df["hours"] = df["Date and time of count"].dt.hour // 2 * 2
 mean_cycle_hour = df.groupby("hours")["Hourly count"].mean().reset_index()
 mean_cycle_hour["Hourly count"] = round(mean_cycle_hour["Hourly count"], 2)
@@ -30,7 +30,7 @@ fig_hourly.update_layout(title="Average number of cyclists per day",
                          yaxis_title="",
                          xaxis=dict(tickvals=mean_cycle_hour["hours"], ticktext=hour_labels))
 
-# 2. Average cyclists per week
+## 2. Average cyclists per week
 df["weekday"] = df["Date and time of count"].dt.strftime("%A")
 
 # re-ordering the weekdays
@@ -51,7 +51,7 @@ fig_weekday.update_layout(title="Average number of cyclists per week",
                           xaxis_title="",
                           yaxis_title="")
 
-# 3. Total cyclists per month
+## 3. Total cyclists per month
 df["Month and year of count"] = df["Date and time of count"].dt.strftime("%Y-%m")
 amount_month = df.groupby("Month and year of count").size().reset_index(name="count")
 amount_month = round(amount_month, 0)
@@ -64,7 +64,7 @@ fig_month = go.Figure(go.Bar(x=amount_month["Month and year of count"],
 fig_month.update_layout(title="Total number of cyclists per month",
                         xaxis_title="",
                         yaxis_title="Amount of cyclists")
-# 4. Seasonal
+## 4. Seasonal
 seasons = {1: "Winter", 2: "Winter", 3: "Spring", 4: "Spring", 5: "Spring", 6: "Summer",
            7: "Summer", 8: "Summer", 9: "Autumn", 10: "Autumn", 11: "Autumn", 12: "Winter"}
 
@@ -89,7 +89,7 @@ fig_season.update_layout(title="Total number of entries per season",
                          xaxis_title="Season",
                          yaxis_title="Total entries")
 
-# 5. Subplots
+## 5. Subplots
 fig = make_subplots(rows=2, cols=2,
                     subplot_titles=("Average number of cyclists per day",
                                     "Average number of cyclists per week",
