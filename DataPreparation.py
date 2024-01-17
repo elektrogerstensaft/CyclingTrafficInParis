@@ -1,29 +1,22 @@
-import pandas as pd
+import pandas as pd # as we will keep it as simple as possible we do not need any further imports
 
 df = pd.read_csv("comptage-velo-donnees-compteurs.csv", sep = ";")
 #print(df.info())
 
-## Is this part still relevant for the preparation?
-# Boxplot of all Hourly counts
-# import plotly.express as px
-# fig = px.box(df, y ="Comptage horaire", x = "mois_annee_comptage", title = "All counters hourly counts histogram")
-# fig.show()
-
 """
 ---
-For a smaller .csv file size we exclude redundant columns:
+For a smaller .csv file size we dropped redundant columns:
 
-Lien vers photo du site de comptage
-ID Photos
-test_lien_vers_photos_du_site_de_comptage_.value_counts
-id_photo_1
-url_sites
-type_dimage
+- Lien vers photo du site de comptage
+- ID Photos
+- test_lien_vers_photos_du_site_de_comptage_.value_counts
+- id_photo_1
+- url_sites
+- type_dimage
 ---
-
 """
 
-# Resizing the df
+# resizing the df
 drop_cols = ["Lien vers photo du site de comptage", "ID Photos", "test_lien_vers_photos_du_site_de_comptage_",
              "id_photo_1", "url_sites", "type_dimage"]
 df.drop(columns=drop_cols, inplace=True)
@@ -54,6 +47,7 @@ df_en = df_en.dropna()
 df_en[["Latitude", "Longitude"]] = df_en["Geographic coordinates"].str.split(",", expand=True)
 
 df_en["Date and time of count"] = pd.to_datetime(df_en["Date and time of count"], utc = True)
+
 # erasing data before October 2022
 date_threshold = pd.to_datetime('2022-10-01 00:00:00+01:00', utc=True)
 df_en = df_en[df_en["Date and time of count"] >= date_threshold]
@@ -62,7 +56,7 @@ print(df_en.info())
 df_en["date"] = df_en["Date and time of count"].dt.date
 df_en["weekday_of_count"] = df_en["Date and time of count"].dt.dayofweek
 
-#creating a column that combines ISO week and year, to handle weeks in different years
+# creating a column that combines ISO week and year, to handle weeks in different years
 df_en["week_year"] = df_en["Date and time of count"].dt.year.astype(str) +"-"+ df_en["Date and time of count"].dt.isocalendar().week.astype(str)
 df_en["hour_of_day"] = df_en["Date and time of count"].dt.hour
 df_en["day"] = df_en["Date and time of count"].dt.day
@@ -76,7 +70,7 @@ df_en.loc[df_en["Counter name"].str.contains("SO-NE"), "direction"] = "Northeast
 df_en.loc[df_en["Counter name"].str.contains("O-E"), "direction"] = "East"
 df_en.loc[df_en["Counter name"].str.contains("NO-SE"), "direction"] = "Southeast"
 
-#importing school and public holidays
+# importing school and public holidays
 df_holidays = pd.read_csv("holidays.csv", sep = ",")
 df_holidays.date = pd.to_datetime(df_holidays.date, format="%d.%m.%Y").dt.date
 
@@ -85,6 +79,12 @@ df_en = df_en.merge(right = df_holidays, on='date', how='left')
 # export the df as a separate new one
 df_en.to_csv("CyclingTrafficInParis_eng.csv", index=False)
 
+"""
+---
+The following section is mainly used for informational purpose.
+We can seen (and check) the values we are going to deal with and if there still will be any NaN
+---
+"""
 
 print(df_en.info())
 print(df_en.head(3))
