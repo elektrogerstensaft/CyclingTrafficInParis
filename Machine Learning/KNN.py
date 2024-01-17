@@ -32,7 +32,7 @@ y_pred_knn_2 = knn_2.predict(X_test)
 y_pred_train_knn_2 = knn_2.predict(X_train)
 
 ## metrics
-# Training set metrics
+# Training set 
 mae_knn_1_train = mean_absolute_error(y_train, y_pred_train_knn_1)
 mse_knn_1_train = mean_squared_error(y_train, y_pred_train_knn_1, squared=True)
 rmse_knn_1_train = mean_squared_error(y_train, y_pred_train_knn_1, squared=False)
@@ -41,7 +41,7 @@ mae_knn_2_train = mean_absolute_error(y_train, y_pred_train_knn_2)
 mse_knn_2_train = mean_squared_error(y_train, y_pred_train_knn_2, squared=True)
 rmse_knn_2_train = mean_squared_error(y_train, y_pred_train_knn_2, squared=False)
 
-# Test set metrics
+# Test set 
 mae_knn_1_test = mean_absolute_error(y_test, y_pred_knn_1)
 mse_knn_1_test = mean_squared_error(y_test, y_pred_knn_1, squared=True)
 rmse_knn_1_test = mean_squared_error(y_test, y_pred_knn_1, squared=False)

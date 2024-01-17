@@ -21,11 +21,13 @@ print("Test score with all variables:", mlp.score(X_test, y_test))
 y_pred_train_mlp = mlp.predict(X_train)
 y_pred_test_mlp = mlp.predict(X_test)
 
-# metrics
+## metrics
+# Training set
 mae_train_mlp = mean_absolute_error(y_train, y_pred_train_mlp)
 mse_train_mlp = mean_squared_error(y_train, y_pred_train_mlp, squared=True)
 rmse_train_mlp = mean_squared_error(y_train, y_pred_train_mlp, squared=False)
 
+# Test set
 mae_test_mlp = mean_absolute_error(y_test, y_pred_test_mlp)
 mse_test_mlp = mean_squared_error(y_test, y_pred_test_mlp, squared=True)
 rmse_test_mlp = mean_squared_error(y_test, y_pred_test_mlp, squared=False)
@@ -41,7 +43,7 @@ data_mlp = {"MAE Train data": [mae_train_mlp],
 df_mlp = pd.DataFrame(data_mlp, index=["MLP Model"])
 print(df_mlp)
 
-# visualise predictions
+## visualisation
 plt.figure(figsize=(8, 8))
 pred_test_mlp = mlp.predict(X_test)
 plt.scatter(pred_test_mlp, y_test, c="darkorchid")

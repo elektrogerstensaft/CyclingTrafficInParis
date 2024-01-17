@@ -14,6 +14,7 @@ y_test = pd.read_csv("y_test_Weather.csv")
 # model 1
 rfr_1 = RandomForestRegressor(min_samples_split=25, random_state=42)
 rfr_1.fit(X_train, y_train.values.ravel())
+
 # save the model to disk
 filename = "RFR.sav"
 pickle.dump(rfr_1, open(filename, "wb"))
@@ -27,7 +28,11 @@ print("Train score with all variables (First Model):", rfr_1.score(X_train, y_tr
 print("Test score with all variables (First Model):", rfr_1.score(X_test, y_test))
 #print("Train score with all variables (Second Model):", rfr_2.score(X_train, y_train))
 #print("Test score with all variables (Second Model):", rfr_2.score(X_test, y_test))
+
 """
+
+The purpose of this part is clearly made for plotting the results we just found out.
+
 # predictions
 y_pred_rfr_1 = rfr_1.predict(X_test)
 y_pred_train_rfr_1 = rfr_1.predict(X_train)
@@ -86,6 +91,7 @@ plt.title("Random Forest Regression for bike countings + weather")
 plt.show()
 """
 
+# calculating and visualise the importance of each column
 feat_importances = pd.DataFrame(rfr_1.feature_importances_, index=X_train.columns, columns=["Importance"])
 feat_importances.sort_values(by='Importance', ascending=False, inplace=True)
 feat_importances.plot(kind='bar', figsize=(10,10))
