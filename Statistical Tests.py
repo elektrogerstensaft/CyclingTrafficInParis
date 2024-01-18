@@ -7,8 +7,13 @@ List of hypothesises:
 - Local: The hourly counts of an individual counter is normally distributed: done, false, p = 0.0, probably an error included
 - Global: The hourly counts of all counts are normally distributed: done, false, p = 0.0, probably an error included
 """
-from scipy.stats import spearmanr
+
 import pandas as pd
+import statsmodels.api
+from scipy.stats import spearmanr
+from statsmodels.formula.api import ols
+from scipy.stats import normaltest
+import plotly.express as px
 
 df = pd.read_csv("CyclingTrafficInParis_eng.csv")
 df["Date and time of count"] = pd.to_datetime(df["Date and time of count"], utc= True)
@@ -29,8 +34,7 @@ df_month_year = df.groupby(["Month and year of count"],as_index= False)["Hourly 
 .rename(columns={"Month and year of count": "Month_and_year_of_count", "Hourly count": "Hourly_count"})
 
 # using ANOVA tests for months as there are less and ordinal values
-import statsmodels.api
-from statsmodels.formula.api import ols
+
 result = statsmodels.formula.api.ols("Hourly_count ~ Month_and_year_of_count", data=df_month_year).fit()
 table = statsmodels.api.stats.anova_lm(result)
 print(table)
@@ -40,6 +44,7 @@ df_installation = df.groupby(["Counting site installation date"],as_index= False
 print("Spearman test of installation date and hourly count: ",spearmanr(df_installation["Hourly count"],df_installation.index))
 
 # Local: The hourly counts of an individual counter is normally distributed, using top 3 counters
+
 # finding top 3 counters
 df_top3 = df.groupby(["Counter name"],as_index= False)["Hourly count"].sum().sort_values("Hourly count", ascending = False).head(3)
 
@@ -48,7 +53,6 @@ for x in df_top3["Counter name"]:
     top3.append(x)
 df_top3 = df.loc[df["Counter name"].isin(top3)]
 
-from scipy.stats import normaltest
 
 for i in range(3):
     counts = df_top3["Hourly count"].loc[df_top3["Counter name"] == top3[i]].to_numpy()
@@ -69,14 +73,7 @@ for x in df_top3["Counter name"]:
 df_top3 = df.loc[df["Counter name"].isin(top3)]
 
 
-#Histogram of top counter Hourly count values, without logarithmic y axis
-import plotly.express as px
-fig = px.histogram(df_top3,
-                    x="Hourly count",
-                    log_y=False,
-                    labels = {
-                        "Hourly count" : "Hourly counted bicycles"
-                    },
-                    color = "Counter name",
-                    title="Histogram of top 3 counters Hourly counts")
+# Histogram of top counter Hourly count values, without logarithmic y axis
+fig = px.histogram(df_top3, x="Hourly count", log_y=False, labels = { "Hourly count" : "Hourly counted bicycles"},
+                   color = "Counter name", title="Histogram of top 3 counters Hourly counts")
 fig.show()

@@ -8,3 +8,4 @@ Overview upon machine learning models: https://docs.google.com/spreadsheets/d/1x
 Dataset page: https://opendata.paris.fr/explore/dataset/comptage-velo-donnees-compteurs/information
 
 The dataset contains hourly counts of bicycles in Paris from the last 13 months. The counters are installed on bicycle lanes and some bus lanes.
+The CSV.zip contains all but the initial ZIP files and enables to run all scripts for visualisation or machine learning.
