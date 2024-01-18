@@ -1,8 +1,11 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+import plotly.express as px
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 import pickle
+from sklearn import tree
+import statistics
 
 # read data
 X_train = pd.read_csv("X_train_Weather.csv")
@@ -12,20 +15,20 @@ y_test = pd.read_csv("y_test_Weather.csv")
 
 ## create + train Random Forest Regressions
 # model 1
-rfr_1 = RandomForestRegressor(min_samples_split=25, random_state=42)
-rfr_1.fit(X_train, y_train.values.ravel())
+#rfr_1 = RandomForestRegressor(min_samples_split=25, random_state=42)
+#rfr_1.fit(X_train, y_train.values.ravel())
 
 # save the model to disk
 filename = "RFR.sav"
-pickle.dump(rfr_1, open(filename, "wb"))
+#pickle.dump(rfr_1, open(filename, "wb"))
 
 # model 2
 #rfr_2 = RandomForestRegressor(n_estimators=80, min_samples_split=10, random_state=42)
 #rfr_2.fit(X_train, y_train.values.ravel())
 
 # display the results of the score
-print("Train score with all variables (First Model):", rfr_1.score(X_train, y_train))
-print("Test score with all variables (First Model):", rfr_1.score(X_test, y_test))
+#print("Train score with all variables (First Model):", rfr_1.score(X_train, y_train))
+#print("Test score with all variables (First Model):", rfr_1.score(X_test, y_test))
 #print("Train score with all variables (Second Model):", rfr_2.score(X_train, y_train))
 #print("Test score with all variables (Second Model):", rfr_2.score(X_test, y_test))
 
@@ -91,7 +94,7 @@ plt.title("Random Forest Regression for bike countings + weather")
 plt.show()
 """
 
-# calculating and visualise the importance of each column
+"""# calculating and visualise the importance of each column
 feat_importances = pd.DataFrame(rfr_1.feature_importances_, index=X_train.columns, columns=["Importance"])
 feat_importances.sort_values(by='Importance', ascending=False, inplace=True)
 feat_importances.plot(kind='bar', figsize=(10,10))
@@ -107,3 +110,39 @@ plt.xlabel("Predicted values")
 plt.ylabel("True values")
 plt.title("Random Forest regression for counted bicycles, with added weather and holidays data")
 plt.show();
+"""
+
+"""# tree diagram
+filename = 'RFR.sav'
+rfr = pickle.load(open(filename, 'rb'))
+pred_test = rfr.predict(X_test)
+
+fig, ax = plt.subplots(figsize=(10, 10))
+tree.plot_tree(rfr.estimators_[0], feature_names=X_test.columns, filled=True, max_depth= 3,fontsize=14, proportion = True, precision=2)
+plt.show()
+"""
+
+"""#Residual plots
+filename = 'RFR.sav'
+rfr = pickle.load(open(filename, 'rb'))
+pred_test = rfr.predict(X_test)
+y_test_list = y_test["Hourly count"].to_list()
+residuals = y_test_list - pred_test
+print(statistics.quantiles(residuals,n=4))
+"""
+
+"""
+fig = plt.figure(figsize = (10,10))
+plt.scatter(residuals, y_test_list)
+
+plt.xlabel("Residuals")
+plt.ylabel("True values")
+plt.title("Residual plot")
+plt.show();
+
+fig = px.histogram(residuals,
+                    log_y=True,
+                    title='Histogram of residuals')
+fig.update_layout(font=dict(size=20))
+fig.show()
+"""

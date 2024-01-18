@@ -38,3 +38,7 @@ Visualisations/RFR predictions.png
 Visualisations/RFR Feature importances.png
 RFR2.sav
 rfr load.py
+Visualisation/residual histogram.png
+Visualisation/residual plot.png
+Visualisation/Residuals vs true.png
+Visualisation/RFR Tree.png

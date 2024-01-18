@@ -67,7 +67,7 @@ fig.show()
 """
 """#Boxplot of top 3 Hourly counts
 
-fig = px.box(df_top3, y ="Hourly count", x = "Months reduced", color = "Counter name", title = "Top 3 counters hourly counts histogram")
+fig = px.box(df_top3, y ="Hourly count", x = "Months reduced", color = "Counter name", title = "Top 3 counters hourly counts boxplot")
 fig.update_layout(font=dict(size=20),legend=dict(yanchor="top", y=0.99, xanchor="left", x=0.01))
 
 fig.show()

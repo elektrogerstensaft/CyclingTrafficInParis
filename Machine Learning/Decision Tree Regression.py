@@ -114,7 +114,6 @@ plot_tree(regressor,
 plt.show();
 """
 """
-
 feat_importances = pd.DataFrame(regressor.feature_importances_, index=X_train.columns, columns=["Importance"])
 feat_importances.sort_values(by='Importance', ascending=False, inplace=True)
 feat_importances.plot(kind='bar', figsize=(10,10))
