@@ -207,7 +207,7 @@ plt.show()
 """
 
 """
-#M ap plot of counted bicycles
+#Map plot of counted bicycles
 import geopandas as gpd
 
 df_counter= pd.read_csv("Counters.csv", sep= ",")
@@ -243,7 +243,7 @@ fig = px.scatter_mapbox(gdf,
                         title = "Total counted bicycles in Paris")
 fig.update_layout(mapbox_style="carto-positron",
                 margin={"r":100,"t":100,"l":100,"b":100},
-                font=dict(size=18, color="Black"))        
+                font=dict(size=18, color="Black"))
 fig.show()
 """
 
