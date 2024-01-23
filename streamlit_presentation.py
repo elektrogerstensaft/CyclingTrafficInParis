@@ -26,7 +26,7 @@ st.sidebar.markdown("---")
 
 st.sidebar.markdown(
   """
-  <div style="background-color: #1a4745; border: 1px solid #6edacc; padding: 10px; border-radius: 5px;">
+  <div style="background-color: #285562; border: 1px solid #85d2db; padding: 10px; border-radius: 5px;">
 
   **Authors:**
   - Martin Kruse
