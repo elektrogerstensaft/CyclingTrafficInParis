@@ -73,7 +73,7 @@ if page == pages[0]:
 
 if page == pages[1]:
     st.title("Cycling Traffic")
-    df = pd.read_csv("CyclingTrafficInParis_eng.csv")
+  
     df["Date and time of count"] = pd.to_datetime(df["Date and time of count"], utc= True)
 
     weekdays = {
