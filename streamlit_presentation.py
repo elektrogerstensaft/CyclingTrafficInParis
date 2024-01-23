@@ -12,7 +12,7 @@ import ssl
 ssl._create_default_https_context = ssl._create_unverified_context
 
 # import the main dataframe
-df = pd.read_csv("https://drive.google.com/file/d/1uleq1dLKq-2YW6xPpaiuiQBAVwV8Xvo0/view?usp=sharing")
+df = pd.read_csv("https://fwpn.uber.space/media/CyclingTrafficInParis_eng.csv
 
 #st.set_page_config(layout="wide")   #this eliminates margins left and right on wider screens, but some plots do not work well with it 
 
