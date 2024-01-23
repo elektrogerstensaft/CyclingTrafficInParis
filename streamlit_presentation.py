@@ -7,6 +7,10 @@ import plotly.express as px
 import plotly.graph_objects as go
 import geopandas as gpd
 
+# in rare cases there might be a SSL error:
+import ssl
+ssl._create_default_https_context = ssl._create_unverified_context
+
 # import the main dataframe
 df = pd.read_csv("https://drive.google.com/file/d/1uleq1dLKq-2YW6xPpaiuiQBAVwV8Xvo0/view?usp=sharing")
 
