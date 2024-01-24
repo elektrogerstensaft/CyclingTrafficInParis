@@ -314,31 +314,34 @@ if page == pages[3] :
     are recognized, but not sufficient in terms of security for exampel for bike users. ")
 
 
-
   else:
     st.subheader('Individual feeling topic scores')
     pages_names_indiv = ['General feeling','Security','Comfort','Efforts','Service and parking lots']
     page_indiv = st.radio('Individual feeling topic scores', page_names_indiv)
 
     if page = 'General feeling':
+      data_feel = {'General feeling': ['In my opinion, bike usage in my municipality is',
+                                 'The cycle route network of my municipality allows me to go everywhere quickly and directly',
+                                 'Cycling in your municipality is',
+                            'Conflicts between individuals cycling and walking are',
+                            'When cycling, individuals driving motorized vehicles respect me', 
+                            'When cycling, I find motorized traffic (volume and speed) to be'],
+        'Score': [4.22,3.89,3.60,2.88,2.54,2.47]}
+
+      df_barom_feel = pd.DataFrame(data_feel)
+
+      fig = plt.figure()
+      plt.rcParams["figure.figsize"] = (12, 6)
+      ax = sns.barplot(x = 'Score', y = 'General feeling', data = df_barom_feel, errorbar=('ci', False))
+      ax.bar_label(ax.containers[0], label_type='edge')
+
+      plt.xlabel("Score")
+      plt.ylabel("")
+      plt.title("Individual topics score - General feeling")
+      st.pyplot(fig)
 
 
-    if page = 'Security':
-
-
-    if page = 'Comfort':
-
-
-    if page = 'Efforts':
-
-
-    else:
-
-
-
-
-
-# st.write("From this general feeling scores, the city of Paris got a global score of 3.31 on a scale of 0 to 6 alongside with all five topics \
+    #  st.write("From a general feeling , the city of Paris got a global score of 3.31 on a scale of 0 to 6 alongside with all five topics \
     scoring between 3.06 and 3.61: Security scores the worst with 3.06 whereas efforts score the best with 3.61. This proves that the municipality efforts \
     are recognized, but not sufficient in terms of security for exampel for bike users. ")
 
@@ -348,6 +351,91 @@ if page == pages[3] :
 # The efforts made by the municipality were however highlighted with a score of 3.61: in particular, efforts made towards cycling and communication 
 # in favor of cycling with respective scores of 4.60 and 4.09 were positively perceived, although motorized vehicles parking on cycle lanes is still 
 # being very negatively perceived and seen as a real issue encountered too many times (score of 1.92).
+
+    if page = 'Security':
+      data_secu = {'Security': ['I can cycle in security in residential streets',
+                            'I can safely cycle on the major traffic routes ',
+                            'In general, when cycling in my municipality I feel',
+                            'I can safely reach by bicycle neighboring communities',
+                            'In my opinion, crossing a junction or a roundabout is', 
+                            'For children and seniors, cycling is'],
+        'Score': [3.84,3.64,3.26,3.15,2.51,1.98]}
+
+      df_barom_secu = pd.DataFrame(data_secu)
+
+      fig = plt.figure()
+      plt.rcParams["figure.figsize"] = (12, 6)
+      ax = sns.barplot(x = 'Score', y = 'Security', data = df_barom_secu, errorbar=('ci', False))
+      ax.bar_label(ax.containers[0], label_type='edge')
+
+      plt.xlabel("Score")
+      plt.ylabel("")
+      plt.title("Individual topics score - Security")
+      st.pyplot(fig)
+
+
+    if page = 'Comfort':
+      data_com = {'Comfort': ['When cycling, I am allowed to use one-way roads against the traffic',
+                            'In my opinion, cycling routes are',
+                            'The maintenance of cycling routes is',
+                            'Cycling directions are correctly indicated by panels',
+                            'When maintenance work on cycle routes is carried out, a safe alternative is suggested'],
+        'Score': [4.47,3.52,3.28,2.97,2.30]}
+
+      df_barom_com = pd.DataFrame(data_com)
+
+      fig = plt.figure()
+      plt.rcParams["figure.figsize"] = (12, 6)
+      ax = sns.barplot(x = 'Score', y = 'Comfort', data = df_barom_com, errorbar=('ci', False))
+      ax.bar_label(ax.containers[0], label_type='edge')
+
+      plt.xlabel("Score")
+      plt.ylabel("")
+      plt.title("Individual topics score - Comfort")
+      st.pyplot(fig)
+
+    
+    if page = 'Efforts':
+      data_eff = {'Efforts': ['In my opinion, efforts made by the municipality in favor of cycling are' ,
+                            'Communication made in favor of cycling mobility is',
+                            'City hall is listening to cycling users needs, involve them into their reflections on mobility and urban development projects',
+                            'In my opinion, parking of motorized vehicles (cars, trucks, motorcycles...) on cycling routes is'],
+        'Score': [4.60,4.09,3.82,1.95]}
+
+      df_barom_eff = pd.DataFrame(data_eff)
+
+      fig = plt.figure()
+      plt.rcParams["figure.figsize"] = (12, 6)
+      ax = sns.barplot(x = 'Score', y = 'Efforts', data = df_barom_eff, errorbar=('ci', False))
+      ax.bar_label(ax.containers[0], label_type='edge')
+
+      plt.xlabel("Score")
+      plt.ylabel("")
+      plt.title("Individual topics score - Efforts")
+      st.pyplot(fig)
+
+    
+    else:
+      data_park = {'Parking': ['Near or within the municipality, to find a cycling store or a repair shop is' ,
+                            'To rent a bike for a few hours or months is',
+                            'Near or within the municipality, to find a parking lot adapted to my specific needs is',
+                            'To park its bike at a railway station or a public transportation station is',
+                        'In my opinion, bicycle thefts are'],
+        'Score': [4.60,4.51,3.11,2.80,1.95]}
+
+      df_barom_park = pd.DataFrame(data_park)
+
+      fig = plt.figure()
+      plt.rcParams["figure.figsize"] = (12, 6)
+      ax = sns.barplot(x = 'Score', y = 'Parking', data = df_barom_park, errorbar=('ci', False))
+      ax.bar_label(ax.containers[0], label_type='edge')
+
+      plt.xlabel("Score")
+      plt.ylabel("")
+      plt.title("Individual topics score - Services and parking lots")
+      st.pyplot(fig)
+
+
 
 
 
