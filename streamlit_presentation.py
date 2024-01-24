@@ -476,23 +476,19 @@ if page == pages[3]:  # Interview & Barometer
       plt.title("Individual topics score - General feeling")
       st.pyplot(fig)
 
+        
+      st.write("With a general feeling score of 3.27, slightly under the average general score of 3.31, we observe that bike users evaluated the overall \ 
+      climate to be moderately in favor of cycling. In particular, when cycling, it seems that motorized traffic in terms of volume and speed was perceived as \
+      intolerable and motorized vehicles were felt as being quite disrespectful towards bike users. On the other hand, participants expressed their feeling that \
+      cycling is agreeable in their municipality and that the cycle network is appropriate for them to be able to reach quickly and directly any location.")
 
-    st.write("From a general feeling , the city of Paris got a global score of 3.31 on a scale of 0 to 6 alongside with all five topics \
-    scoring between 3.06 and 3.61: Security scores the worst with 3.06 whereas efforts score the best with 3.61. This proves that the municipality efforts \
-    are recognized, but not sufficient in terms of security for exampel for bike users. ")
 
-  # We can then conclude from this general analysis that the city of Paris on a scale from 0 to 6 does not score well with a global score of 3.31: 
-  # Even if the cycling traffic is progressing, users still perceived security to be an important issue, in particular when crossing a junction or a 
-  # round-about (score of 1.98 on this question) or for children and seniors (score of 2.51 on this question). 
-  # The efforts made by the municipality were however highlighted with a score of 3.61: in particular, efforts made towards cycling and communication 
-  # in favor of cycling with respective scores of 4.60 and 4.09 were positively perceived, although motorized vehicles parking on cycle lanes is still 
-  # being very negatively perceived and seen as a real issue encountered too many times (score of 1.92).
 
     if page == "Security":
       data_secu = {"Security": ["I can cycle in security in residential streets",
                             "I can safely cycle on the major traffic routes ",
                             "In general, when cycling in my municipality I feel",
-                            "I can safely reach by bicycle neighboring communities",
+                            "I can safely reach bicycle neighboring communities",
                             "In my opinion, crossing a junction or a roundabout is", 
                             "For children and seniors, cycling is"],
                    "Score": [3.84,3.64,3.26,3.15,2.51,1.98]}
@@ -508,6 +504,12 @@ if page == pages[3]:  # Interview & Barometer
       plt.ylabel("")
       plt.title("Individual topics score - Security")
       st.pyplot(fig)
+
+
+      st.write("With a general score of 3.06, under the average general score of 3.31, security scores the worst from all topics covered by the survey. \
+      Participants expressed here in particular their concerns on the dangerousness of cycling for children and seniors as well as when crossing junction or \
+      roundabout. On the other hand, it seems that residential streets or even major cycle traffic routes were perceived as quite safe for cycling.")
+
 
 
     if page == "Comfort":
@@ -530,6 +532,13 @@ if page == pages[3]:  # Interview & Barometer
       plt.title("Individual topics score - Comfort")
       st.pyplot(fig)
 
+
+      st.write("With a general score of 3.31, comfort scores on the exact same level as the average global score. Even if participants noted very positively \
+      the general comfort of cycling routes and in particular the use of one-way road against the traffic, they clearly indicated their wish to have top quality \
+      cycle routes with safe and comfortable paths.")
+
+
+
     if page == "Efforts":
       data_eff = {"Efforts": ["In my opinion, efforts made by the municipality in favor of cycling are",
                               "Communication made in favor of cycling mobility is",
@@ -548,7 +557,13 @@ if page == pages[3]:  # Interview & Barometer
       plt.ylabel("")
       plt.title("Individual topics score - Efforts")
       st.pyplot(fig)
-    
+
+
+      st.write("With a general score of 3.61, above the average general score of 3.31, the efforts of the municipality were highlighted by the participants:\
+      in particular, the efforts made in favor of cycling as well as the communication in favor of cycling mobility were very positively mentioned, even if\
+      the parking of motorized vehicles on cycling routes remains a frequent issue impacting negatively the overall perception on the efforts made.")
+
+
     else:
       data_park = {"Parking": ["Near or within the municipality, to find a cycling store or a repair shop is" ,
                                "To rent a bike for a few hours or months is",
@@ -568,6 +583,13 @@ if page == pages[3]:  # Interview & Barometer
       plt.ylabel("")
       plt.title("Individual topics score - Services and parking lots")
       st.pyplot(fig)
+
+
+      st.write("With a general score of 3.31, services and parking lots facilities also scores on the exact same level as the average global score. Especially, \
+      the ease to find adequates stores or repair shops as well as to rent a bike were rated very positively, even if bicycle thefts remains problematic and \
+      very often encountered.")
+
+
 
 
 if page == pages[4] :
