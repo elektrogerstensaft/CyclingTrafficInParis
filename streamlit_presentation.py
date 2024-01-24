@@ -238,7 +238,7 @@ if page == pages[1]:  # Cycling traffic
 if page == pages[2]:  # Weather & Traffic 
   st.title("Weather & Traffic")
 
-  df_W = pd.read_csv("https://drive.google.com/file/d/12-ycKBb7m2nVZNEJ4VOjCTkb59eHZyXA/", sep = ",")
+  df_W = load_data("https://fwpn.uber.space/media/Weather_eng_final.csv")
 
   df_W = df_W.drop(columns = ["date", "year", "month", "year_month", "day", "time"]) #prevents duplicated columns with x / y
 
@@ -269,9 +269,6 @@ if page == pages[2]:  # Weather & Traffic
   # Replacing in final DF Cycling + weather -0.1mm precipitation with 0.00 (as cannot exist)
   #print(df_final_W["Rain_last3H"].unique())
   df_final_W["Rain_last3H"].replace(-0.1, 0, inplace=True)
-
-  # Exporting merged DF as a separate new one
-  df_final_W.to_csv("WeatherAndTraffic.csv", index=False)
 
   df_final_W.info()
   percent_missing = df.isnull().sum() * 100 / len(df)
