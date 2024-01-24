@@ -376,7 +376,7 @@ if page == pages[3]:  # Interview & Barometer
     We could retrieve for the city of Paris alone 9,116 responses which we further analyze, after having resized the dataset and added some information \
     (total sum,etc...). ") 
 
-    st.dataframe(df_barom.head(10))
+  st.dataframe(df_barom.head(10))
 
   
   # data analysis using DataVizualization figures
