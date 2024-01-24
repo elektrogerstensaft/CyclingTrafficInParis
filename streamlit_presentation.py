@@ -13,7 +13,7 @@ ssl._create_default_https_context = ssl._create_unverified_context
 
 # import the main dataframe and the barometer dataframe
 df = pd.read_csv("https://fwpn.uber.space/media/CyclingTrafficInParis_eng.csv")
-df_barom = pd.read_csv("/Users/marine/Desktop/WEITERBILDUNG DATA ANALYST 2023/PROJECT/a1b3c948f6528b25ac3eed375d7ca28b/reponses-departement-75.csv", sep = ",")
+df_barom = pd.read_csv("https://drive.google.com/file/d/1wbOf6IptimYQ6jX1e7RJTWkUc1ihZlZt/", sep = ",")
 
 #st.set_page_config(layout="wide")   #this eliminates margins left and right on wider screens, but some plots do not work well with it 
 
@@ -28,7 +28,6 @@ page=st.sidebar.radio("Go to", pages)
 
 ## about
 st.sidebar.markdown("---")
-
 st.sidebar.markdown(
   """
   <div style="background-color: #285562; border: 1px solid #85d2db; padding: 10px; border-radius: 5px;">
@@ -50,7 +49,7 @@ st.sidebar.markdown(
 
 ## pages /w content
 
-if page == pages[0]:
+if page == pages[0]:  # Summary
   st.title("Summary")
   st.markdown(
     """
@@ -72,7 +71,8 @@ if page == pages[0]:
     """
   )
 
-if page == pages[1]:
+
+if page == pages[1]:  # Cycling traffic
     st.title("Cycling Traffic")
   
     df["Date and time of count"] = pd.to_datetime(df["Date and time of count"], utc= True)
@@ -107,7 +107,6 @@ if page == pages[1]:
         top3.append(x)
     df_top3 = df.loc[df["Counter name"].isin(top3)]
 
-
     st.write("### Cycling Traffic")
     st.write("#### Initial Data")
     # presentation of the data (volume, architecture, etc.)
@@ -129,7 +128,7 @@ if page == pages[1]:
     # Heatmap of days and hours with most traffic
     order = ["Sunday", "Saturday", "Friday", "Thursday", "Wednesday", "Tuesday","Monday"]
 
-    grouped_multiple = df_top3.groupby(["hour_of_day", 'weekday_of_count']).agg({'Hourly count': ["mean", "median","sum"]})
+    grouped_multiple = df_top3.groupby(["hour_of_day", "weekday_of_count"]).agg({"Hourly count": ["mean", "median","sum"]})
     grouped_multiple.columns = ["Hourly_count_mean", "Hourly_count_median","Hourly_count_sum"]
     grouped_multiple = grouped_multiple.reset_index()
 
@@ -222,16 +221,147 @@ if page == pages[1]:
     st.plotly_chart(fig)
 
 
+## THE FOLLOWING PAGE IS NOT FINISHED YET
 
-if page == pages[2] : 
+if page == pages[2]:  # Weather & Traffic 
   st.title("Weather & Traffic")
 
+  df_W = pd.read_csv("https://drive.google.com/file/d/12-ycKBb7m2nVZNEJ4VOjCTkb59eHZyXA/", sep = ",")
+
+  df_W = df_W.drop(columns = ["date", "year", "month", "year_month", "day", "time"]) #prevents duplicated columns with x / y
+
+  # Weather DF: deleting substring "T" within column "Date_original" and renaming column "Date" for merging purposes
+  df_W.rename({"Date_original": "Date and time of count"}, axis=1, inplace=True)
+  df_W["Date and time of count"] = pd.to_datetime(df_W["Date and time of count"].str.replace("T"," "), utc=True)
+  print(df_W.head())
+  df["Date and time of count"] = pd.to_datetime(df["Date and time of count"], utc=True)
 
 
+  # Concatenating the two datasets based on column ‘Date and time of count’
+  df_final_W = df.merge(right = df_W, on = "Date and time of count", how = "left")
+
+  ## Temp + Rain infos only different hours not always corresponding to traffic cycling DF > Following strategy: fill in missing values with next precedent available information
+  # Sorting final DF based on columns "Counter ID" and ‘Date and time of count" and resetting index
+  df_final_W.sort_values(by=["Counter ID","Date and time of count"], inplace = True)
+  df_final_W = df_final_W.reset_index()
+  df_final_W=df_final_W.drop("index", axis="columns")
+
+  # Filling in missing values with the next previous information available
+  df_final_W = df_final_W.fillna(method="ffill")
+  #print(df_final_W.head())
+
+  # Last check on NaN
+  nan_count = df_final_W.isna().sum()
+  #print(nan_count)
+
+  # Replacing in final DF Cycling + weather -0.1mm precipitation with 0.00 (as cannot exist)
+  #print(df_final_W["Rain_last3H"].unique())
+  df_final_W["Rain_last3H"].replace(-0.1, 0, inplace=True)
+
+  # Exporting merged DF as a separate new one
+  df_final_W.to_csv("WeatherAndTraffic.csv", index=False)
+
+  df_final_W.info()
+  percent_missing = df.isnull().sum() * 100 / len(df)
+
+  # Min/ Max on temperatures + precipitation
+  print(df["Temp_°C"].min())
+  print(df["Temp_°C"].max())
+  df = df[df["Temp_°C"] >= 35]
+  df = df[df["Temp_°C"] <= -6]
+
+  print(df["Rain_last3H"].min())
+  print(df["Rain_last3H"].max())
+
+  df = df[df["Rain_last3H"] >= 0]
+  df = df[df["Rain_last3H"] <= 14.9]
 
 
+  # Calculating correlation coefficient between 
+  np.corrcoef(df["Temp_°C"], df["Hourly count"])
+  np.corrcoef(df["Rain_last3H"], df["Hourly count"])
 
-if page == pages[3] : 
+
+  # Satistical tests on weather
+  #1)	Temp and hourly count
+
+  from scipy.stats import pearsonr
+  pearsonr(x = df["Temp_°C"], y = df["Hourly count"]) 
+
+  print("p-value: ", pearsonr(x = df["Temp_°C"], y = df["Hourly count"])[1])
+  print("coefficient: ", pearsonr(x = df["Temp_°C"], y = df["Hourly count"])[0])
+
+  #2)	precipitations and hourly count
+
+  from scipy.stats import pearsonr
+  pearsonr(x = df["Rain_last3H"], y = df["Hourly count"]) 
+
+  print("p-value: ", pearsonr(x = df["Rain_last3H"], y = df["Hourly count"])[1])
+  print("coefficient: ", pearsonr(x = df["Rain_last3H"], y = df["Hourly count"])[0])
+
+
+  # Impact of temp and precipitations on average hourly count
+  # Impact of temperatures < 5°C and viz
+  Temp = [] 
+
+  for row in df["Temp_°C"]:
+     if row < 5 : Temp.append("< 5°C") 
+     else: Temp.append("> 5°C") 
+
+  df["Temp"] = Temp 
+  print(df.head())
+
+  df_temp = df.groupby("Temp", as_index=False)["Hourly count"].mean()
+
+  plt.rcParams["figure.figsize"] = (4, 5)
+  ax = sns.barplot(x = "Temp", y = "Hourly count", data = df_temp, errorbar=("ci", False))
+  ax.bar_label(ax.containers[0], label_type="edge")
+
+  plt.xlabel("Temperatures")
+  plt.ylabel("Average hourly count")
+  plt.title("Impact of temperatures on cycling traffic")
+  plt.show()
+
+
+  # Impact of temperatures > 25°C and viz
+  Temp2 = [] 
+
+  for row in df["Temp_°C"]:
+    if row > 25: Temp2.append("> 25°C") 
+    else: Temp2.append("< 25°C") 
+
+  df["Temp2"] = Temp2 
+  print(df.head())
+
+
+  df_temp2 = df.groupby("Temp2", as_index=False)["Hourly count"].mean()
+
+  plt.rcParams["figure.figsize"] = (4, 5)
+  ax = sns.barplot(x = "Temp2", y = "Hourly count", data = df_temp2, errorbar=("ci", False))
+  ax.bar_label(ax.containers[0], label_type="edge")
+
+  plt.xlabel("Temperatures")
+  plt.ylabel("Average hourly count")
+  plt.title("Impact of temperatures on cycling traffic")
+
+  plt.show()
+
+  # Impact of precipitations and viz
+
+  df_rain = df.groupby("Rain_classes", as_index=False)["Hourly count"].mean()
+
+  plt.rcParams["figure.figsize"] = (6, 6)
+  ax = sns.barplot(x = "Rain_classes", y = "Hourly count", data = df_rain, errorbar=("ci", False))
+  ax.bar_label(ax.containers[0], label_type="edge")
+
+  plt.xlabel("Precipitation classes")
+  plt.ylabel("Average hourly count")
+  plt.title("Impact of precipitations on cycling traffic")
+
+  plt.show()
+
+
+if page == pages[3]:  # Interview & Barometer
   st.title("### Interview & Barometer")
   st.header("#### Data Collection and Pre-Processing")
    
@@ -252,25 +382,25 @@ if page == pages[3] :
   # data analysis using DataVizualization figures
   # Viz on evolution and general feeling scores for city of Paris
 
-  page_names = ['General evolution score','General feeling scores','Individual feeling topic scores']
-  page = st.radio('Barometer general results 2021', page_names)
+  page_names = ["General evolution score","General feeling scores","Individual feeling topic scores"]
+  page = st.radio("Barometer general results 2021", page_names)
 
-  if page = 'General evolution score':
-    df_barom = df_barom.drop(columns=['uid', 'q01'])
-    df_barom_evol = df_barom.groupby('q13', as_index=False)['q13'].value_counts()
-    df_barom_evol['percent'] = ((df_barom_evol['count'] /
-                  df_barom_evol['count'].sum()) * 100).round(2)
-    list_evol = {1: 'Highly deteriorated',
-               2: 'Slightly deteriorated',
-               3: 'Identical',
-              4: 'Slightly ameliorated',
-              5: 'Highly ameliorated'}
-    df_barom_evol['q13_name'] = df_barom_evol['q13'].map(list_evol)
+  if page = "General evolution score":
+    df_barom = df_barom.drop(columns=["uid", "q01"])
+    df_barom_evol = df_barom.groupby("q13", as_index=False)["q13"].value_counts()
+    df_barom_evol["percent"] = ((df_barom_evol["count"] /
+                  df_barom_evol["count"].sum()) * 100).round(2)
+    list_evol = {1: "Highly deteriorated",
+                 2: "Slightly deteriorated",
+                 3: "Identical",
+                 4: "Slightly ameliorated",
+                 5: "Highly ameliorated"}
+    df_barom_evol["q13_name"] = df_barom_evol["q13"].map(list_evol)
 
     fig = plt.figure()
     plt.rcParams["figure.figsize"] = (10, 6)
-    ax = sns.barplot(x = 'q13_name', y = 'percent', data = df_barom_evol, errorbar=('ci', False))
-    ax.bar_label(ax.containers[0], label_type='edge',fmt='%.1f%%')
+    ax = sns.barplot(x = "q13_name", y = "percent", data = df_barom_evol, errorbar=("ci", False))
+    ax.bar_label(ax.containers[0], label_type="edge",fmt="%.1f%%")
 
     plt.xlabel("Situation")
     plt.ylabel("%")
@@ -281,27 +411,25 @@ if page == pages[3] :
     whereas 8,8% are of the opinion that it has deteriorated either highly or slightly. 9.5% of the respondents perceived an identical situation with \
     no amelioration or deterioration.")
 
+  if page = "General feeling scores":
 
-
-  if page = 'General feeling scores':
-
-    df_barom = df_barom.drop(columns=['uid', 'q01'])
+    df_barom = df_barom.drop(columns=["uid", "q01"])
     
-    General_feeling = df_barom[['q14', 'q15', 'q16', 'q17','q18','q19']].sum().sum() / (9116*6)
-    Security = df_barom[['q20', 'q21', 'q22', 'q23','q24','q25']].sum().sum() / (9116*6)
-    Comfort = df_barom[['q26', 'q27', 'q28', 'q29','q30']].sum().sum() / (9116*5)
-    Efforts = df_barom[['q31', 'q32', 'q33', 'q34']].sum().sum() / (9116*4)
-    Services_and_parking_lots = df_barom[['q35', 'q36', 'q37', 'q38','q39']].sum().sum() / (9116*5)
-    Global_score = df_barom[['q14', 'q15', 'q16', 'q17','q18','q19','q20', 'q21', 'q22', 'q23','q24','q25','q26', 'q27', 'q28', 'q29','q30','q31', 'q32', 'q33', 'q34','q35', 'q36', 'q37', 'q38','q39']].sum().sum() / (9116*26)
+    General_feeling = df_barom[["q14", "q15", "q16", "q17","q18","q19"]].sum().sum() / (9116*6)
+    Security = df_barom[["q20", "q21", "q22", "q23","q24","q25"]].sum().sum() / (9116*6)
+    Comfort = df_barom[["q26", "q27", "q28", "q29","q30"]].sum().sum() / (9116*5)
+    Efforts = df_barom[["q31", "q32", "q33", "q34"]].sum().sum() / (9116*4)
+    Services_and_parking_lots = df_barom[["q35", "q36", "q37", "q38","q39"]].sum().sum() / (9116*5)
+    Global_score = df_barom[["q14", "q15", "q16", "q17","q18","q19","q20", "q21", "q22", "q23","q24","q25","q26", "q27", "q28", "q29","q30","q31", "q32", "q33", "q34","q35", "q36", "q37", "q38","q39"]].sum().sum() / (9116*26)
 
-    data = {'Topics': ['General feeling','Security','Comfort','Efforts', 'Services and parking lots', 'Global score'],
-        'Score': [3.27,3.06,3.31,3.61,3.40,3.31]}
+    data = {"Topics": ["General feeling","Security","Comfort","Efforts", "Services and parking lots", "Global score"],
+        "Score": [3.27,3.06,3.31,3.61,3.40,3.31]}
     df_barom_gen = pd.DataFrame(data)
 
     fig = plt.figure()
     plt.rcParams["figure.figsize"] = (12, 6)
-    ax = sns.barplot(x = 'Topics', y = 'Score', data = df_barom_gen, errorbar=('ci', False))
-    ax.bar_label(ax.containers[0], label_type='edge')
+    ax = sns.barplot(x = "Topics", y = "Score", data = df_barom_gen, errorbar=("ci", False))
+    ax.bar_label(ax.containers[0], label_type="edge")
 
     plt.ylim(0, 6)
     plt.xlabel("")
@@ -313,27 +441,26 @@ if page == pages[3] :
     scoring between 3.06 and 3.61: Security scores the worst with 3.06 whereas efforts score the best with 3.61. This proves that the municipality efforts \
     are recognized, but not sufficient in terms of security for exampel for bike users. ")
 
-
   else:
-    st.subheader('Individual feeling topic scores')
-    pages_names_indiv = ['General feeling','Security','Comfort','Efforts','Service and parking lots']
-    page_indiv = st.radio('Individual feeling topic scores', page_names_indiv)
+    st.subheader("Individual feeling topic scores")
+    pages_names_indiv = ["General feeling","Security","Comfort","Efforts","Service and parking lots"]
+    page_indiv = st.radio("Individual feeling topic scores", page_names_indiv)
 
-    if page = 'General feeling':
-      data_feel = {'General feeling': ['In my opinion, bike usage in my municipality is',
-                                 'The cycle route network of my municipality allows me to go everywhere quickly and directly',
-                                 'Cycling in your municipality is',
-                            'Conflicts between individuals cycling and walking are',
-                            'When cycling, individuals driving motorized vehicles respect me', 
-                            'When cycling, I find motorized traffic (volume and speed) to be'],
-        'Score': [4.22,3.89,3.60,2.88,2.54,2.47]}
+    if page = "General feeling":
+      data_feel = {"General feeling": ["In my opinion, bike usage in my municipality is",
+                                       "The cycle route network of my municipality allows me to go everywhere quickly and directly",
+                                       "Cycling in your municipality is",
+                                       "Conflicts between individuals cycling and walking are",
+                                       "When cycling, individuals driving motorized vehicles respect me", 
+                                       "When cycling, I find motorized traffic (volume and speed) to be"],
+                   "Score": [4.22,3.89,3.60,2.88,2.54,2.47]}
 
       df_barom_feel = pd.DataFrame(data_feel)
 
       fig = plt.figure()
       plt.rcParams["figure.figsize"] = (12, 6)
-      ax = sns.barplot(x = 'Score', y = 'General feeling', data = df_barom_feel, errorbar=('ci', False))
-      ax.bar_label(ax.containers[0], label_type='edge')
+      ax = sns.barplot(x = "Score", y = "General feeling", data = df_barom_feel, errorbar=("ci", False))
+      ax.bar_label(ax.containers[0], label_type="edge")
 
       plt.xlabel("Score")
       plt.ylabel("")
@@ -341,32 +468,32 @@ if page == pages[3] :
       st.pyplot(fig)
 
 
-    #  st.write("From a general feeling , the city of Paris got a global score of 3.31 on a scale of 0 to 6 alongside with all five topics \
+    st.write("From a general feeling , the city of Paris got a global score of 3.31 on a scale of 0 to 6 alongside with all five topics \
     scoring between 3.06 and 3.61: Security scores the worst with 3.06 whereas efforts score the best with 3.61. This proves that the municipality efforts \
     are recognized, but not sufficient in terms of security for exampel for bike users. ")
 
-#  We can then conclude from this general analysis that the city of Paris on a scale from 0 to 6 does not score well with a global score of 3.31: 
-# Even if the cycling traffic is progressing, users still perceived security to be an important issue, in particular when crossing a junction or a 
-# round-about (score of 1.98 on this question) or for children and seniors (score of 2.51 on this question). 
-# The efforts made by the municipality were however highlighted with a score of 3.61: in particular, efforts made towards cycling and communication 
-# in favor of cycling with respective scores of 4.60 and 4.09 were positively perceived, although motorized vehicles parking on cycle lanes is still 
-# being very negatively perceived and seen as a real issue encountered too many times (score of 1.92).
+  # We can then conclude from this general analysis that the city of Paris on a scale from 0 to 6 does not score well with a global score of 3.31: 
+  # Even if the cycling traffic is progressing, users still perceived security to be an important issue, in particular when crossing a junction or a 
+  # round-about (score of 1.98 on this question) or for children and seniors (score of 2.51 on this question). 
+  # The efforts made by the municipality were however highlighted with a score of 3.61: in particular, efforts made towards cycling and communication 
+  # in favor of cycling with respective scores of 4.60 and 4.09 were positively perceived, although motorized vehicles parking on cycle lanes is still 
+  # being very negatively perceived and seen as a real issue encountered too many times (score of 1.92).
 
-    if page = 'Security':
-      data_secu = {'Security': ['I can cycle in security in residential streets',
-                            'I can safely cycle on the major traffic routes ',
-                            'In general, when cycling in my municipality I feel',
-                            'I can safely reach by bicycle neighboring communities',
-                            'In my opinion, crossing a junction or a roundabout is', 
-                            'For children and seniors, cycling is'],
-        'Score': [3.84,3.64,3.26,3.15,2.51,1.98]}
+    if page = "Security":
+      data_secu = {"Security": ["I can cycle in security in residential streets",
+                            "I can safely cycle on the major traffic routes ",
+                            "In general, when cycling in my municipality I feel",
+                            "I can safely reach by bicycle neighboring communities",
+                            "In my opinion, crossing a junction or a roundabout is", 
+                            "For children and seniors, cycling is"],
+                   "Score": [3.84,3.64,3.26,3.15,2.51,1.98]}
 
       df_barom_secu = pd.DataFrame(data_secu)
 
       fig = plt.figure()
       plt.rcParams["figure.figsize"] = (12, 6)
-      ax = sns.barplot(x = 'Score', y = 'Security', data = df_barom_secu, errorbar=('ci', False))
-      ax.bar_label(ax.containers[0], label_type='edge')
+      ax = sns.barplot(x = "Score", y = "Security", data = df_barom_secu, errorbar=("ci", False))
+      ax.bar_label(ax.containers[0], label_type="edge")
 
       plt.xlabel("Score")
       plt.ylabel("")
@@ -374,71 +501,64 @@ if page == pages[3] :
       st.pyplot(fig)
 
 
-    if page = 'Comfort':
-      data_com = {'Comfort': ['When cycling, I am allowed to use one-way roads against the traffic',
-                            'In my opinion, cycling routes are',
-                            'The maintenance of cycling routes is',
-                            'Cycling directions are correctly indicated by panels',
-                            'When maintenance work on cycle routes is carried out, a safe alternative is suggested'],
-        'Score': [4.47,3.52,3.28,2.97,2.30]}
+    if page = "Comfort":
+      data_com = {"Comfort": ["When cycling, I am allowed to use one-way roads against the traffic",
+                              "In my opinion, cycling routes are",
+                              "The maintenance of cycling routes is",
+                              "Cycling directions are correctly indicated by panels",
+                              "When maintenance work on cycle routes is carried out, a safe alternative is suggested"],
+                  "Score": [4.47,3.52,3.28,2.97,2.30]}
 
       df_barom_com = pd.DataFrame(data_com)
 
       fig = plt.figure()
       plt.rcParams["figure.figsize"] = (12, 6)
-      ax = sns.barplot(x = 'Score', y = 'Comfort', data = df_barom_com, errorbar=('ci', False))
-      ax.bar_label(ax.containers[0], label_type='edge')
+      ax = sns.barplot(x = "Score", y = "Comfort", data = df_barom_com, errorbar=("ci", False))
+      ax.bar_label(ax.containers[0], label_type="edge")
 
       plt.xlabel("Score")
       plt.ylabel("")
       plt.title("Individual topics score - Comfort")
       st.pyplot(fig)
 
-    
-    if page = 'Efforts':
-      data_eff = {'Efforts': ['In my opinion, efforts made by the municipality in favor of cycling are' ,
-                            'Communication made in favor of cycling mobility is',
-                            'City hall is listening to cycling users needs, involve them into their reflections on mobility and urban development projects',
-                            'In my opinion, parking of motorized vehicles (cars, trucks, motorcycles...) on cycling routes is'],
-        'Score': [4.60,4.09,3.82,1.95]}
+    if page = "Efforts":
+      data_eff = {"Efforts": ["In my opinion, efforts made by the municipality in favor of cycling are",
+                              "Communication made in favor of cycling mobility is",
+                              "City hall is listening to cycling users needs, involve them into their reflections on mobility and urban development projects",
+                              "In my opinion, parking of motorized vehicles (cars, trucks, motorcycles...) on cycling routes is"],
+                  "Score": [4.60,4.09,3.82,1.95]}
 
       df_barom_eff = pd.DataFrame(data_eff)
 
       fig = plt.figure()
       plt.rcParams["figure.figsize"] = (12, 6)
-      ax = sns.barplot(x = 'Score', y = 'Efforts', data = df_barom_eff, errorbar=('ci', False))
-      ax.bar_label(ax.containers[0], label_type='edge')
+      ax = sns.barplot(x = "Score", y = "Efforts", data = df_barom_eff, errorbar=("ci", False))
+      ax.bar_label(ax.containers[0], label_type="edge")
 
       plt.xlabel("Score")
       plt.ylabel("")
       plt.title("Individual topics score - Efforts")
       st.pyplot(fig)
-
     
     else:
-      data_park = {'Parking': ['Near or within the municipality, to find a cycling store or a repair shop is' ,
-                            'To rent a bike for a few hours or months is',
-                            'Near or within the municipality, to find a parking lot adapted to my specific needs is',
-                            'To park its bike at a railway station or a public transportation station is',
-                        'In my opinion, bicycle thefts are'],
-        'Score': [4.60,4.51,3.11,2.80,1.95]}
+      data_park = {"Parking": ["Near or within the municipality, to find a cycling store or a repair shop is" ,
+                               "To rent a bike for a few hours or months is",
+                               "Near or within the municipality, to find a parking lot adapted to my specific needs is",
+                               "To park its bike at a railway station or a public transportation station is",
+                               "In my opinion, bicycle thefts are"],
+                   "Score": [4.60,4.51,3.11,2.80,1.95]}
 
       df_barom_park = pd.DataFrame(data_park)
 
       fig = plt.figure()
       plt.rcParams["figure.figsize"] = (12, 6)
-      ax = sns.barplot(x = 'Score', y = 'Parking', data = df_barom_park, errorbar=('ci', False))
-      ax.bar_label(ax.containers[0], label_type='edge')
+      ax = sns.barplot(x = "Score", y = "Parking", data = df_barom_park, errorbar=("ci", False))
+      ax.bar_label(ax.containers[0], label_type="edge")
 
       plt.xlabel("Score")
       plt.ylabel("")
       plt.title("Individual topics score - Services and parking lots")
       st.pyplot(fig)
-
-
-
-
-
 
 
 if page == pages[4] : 
@@ -452,7 +572,7 @@ target = df["Hourly count"]
 
 X_train, X_test, y_train, y_test = train_test_split(feats, target, test_size=0.25, random_state=42)
   """
-  st.code(code, language='python')
+  st.code(code, language="python")
   st.write("The feature were split into 3 variable types: categorical, numerical and cyclical.")
   code="""cat = ["direction", "Month and year of count","holiday"]
     num = ["day", "Latitude", "Longitude","Humidity","Temp_°C","Rain_last3H"]
@@ -476,8 +596,8 @@ X_train, X_test, y_train, y_test = train_test_split(feats, target, test_size=0.2
   st.code(code, language= "python")
 
   st.write("The cyclical variables were treated with sine and cosine functions like this:")
-  code="""circular_train.loc[:, 'sin_hour'] = circular_train.loc[:, 'hour_of_day'].apply(lambda h : np.sin(2 * np.pi * h / 24))
-    circular_train.loc[:, 'cos_hour'] = circular_train.loc[:, 'hour_of_day'].apply(lambda h : np.cos(2 * np.pi * h / 24))"""
+  code="""circular_train.loc[:, "sin_hour"] = circular_train.loc[:, "hour_of_day"].apply(lambda h : np.sin(2 * np.pi * h / 24))
+    circular_train.loc[:, "cos_hour"] = circular_train.loc[:, "hour_of_day"].apply(lambda h : np.cos(2 * np.pi * h / 24))"""
   st.code(code, language= "python")
  
 
