@@ -237,11 +237,12 @@ if page == pages[3] :
    
   # presentation of the data (volume, architecture, etc.) and cleaning steps
   
-    st.write("We retrieved bike user’s opinions from the last survey on the bikers-cities in France made available for year 2021 and carried out by the \
-    French bicycle users federation (Fédération des Usagers de la Bicyclette – FUB). In this survey, there was a total of 29 questions asked to users split \ 
+  st.write(
+    "We retrieved bike user's opinions from the last survey on the bikers-cities in France made available for year 2021 and carried out by the \
+    French bicycle users federation (Fédération des Usagers de la Bicyclette – FUB). In this survey, there was a total of 29 questions asked to users split \
     into five different topics from their general feeling in terms of security and comfort to the current infrastructure and amenities as well the current \
     public policies to promote bike use where participants express their opinion on a scale of 6 points (for example on security matters 1 being \
-    ‘not feeling safe’ and 6 being ‘feeling safe’). A global note was then calculated from the average of each five topics.\
+    'not feeling safe' and 6 being 'feeling safe'). A global note was then calculated from the average of each five topics.\
     We could retrieve for the city of Paris alone 9,116 responses which we further analyze, after having resized the dataset and added some information \
     (total sum,etc...). ") 
 
