@@ -6,14 +6,26 @@ import seaborn as sns
 import plotly.express as px
 import plotly.graph_objects as go
 import geopandas as gpd
+import pickle
+from urllib.request import urlopen
 
 # in rare cases there might be a SSL error:
 import ssl
 ssl._create_default_https_context = ssl._create_unverified_context
 
 # import the main dataframe and the barometer dataframe
-df = pd.read_csv("https://fwpn.uber.space/media/CyclingTrafficInParis_eng.csv")
-df_barom = pd.read_csv("/Users/marine/Desktop/WEITERBILDUNG DATA ANALYST 2023/PROJECT/a1b3c948f6528b25ac3eed375d7ca28b/reponses-departement-75.csv", sep = ",")
+@st.cache_data
+def load_data(url):
+    df = pd.read_csv(url)
+    return df
+
+df = load_data("https://fwpn.uber.space/media/CyclingTrafficInParis_eng.csv")
+df_barom = load_data("https://fwpn.uber.space/media/reponses-departement-75.csv")
+
+@st.cache_resource
+def load_model(filename):
+    model = pickle.load(open(filename, 'rb'))
+    return model
 
 #st.set_page_config(layout="wide")   #this eliminates margins left and right on wider screens, but some plots do not work well with it 
 
@@ -228,9 +240,6 @@ if page == pages[2] :
 
 
 
-
-
-
 if page == pages[3] : 
   st.title("### Interview & Barometer")
   st.header("#### Data Collection and Pre-Processing")
@@ -246,7 +255,7 @@ if page == pages[3] :
     We could retrieve for the city of Paris alone 9,116 responses which we further analyze, after having resized the dataset and added some information \
     (total sum,etc...). ") 
 
-    st.dataframe(df_barom.head(10))
+  st.dataframe(df_barom.head(10))
 
   
   # data analysis using DataVizualization figures
@@ -255,7 +264,7 @@ if page == pages[3] :
   page_names = ['General evolution score','General feeling scores','Individual feeling topic scores']
   page = st.radio('Barometer general results 2021', page_names)
 
-  if page = 'General evolution score':
+  if page == 'General evolution score':
     df_barom = df_barom.drop(columns=['uid', 'q01'])
     df_barom_evol = df_barom.groupby('q13', as_index=False)['q13'].value_counts()
     df_barom_evol['percent'] = ((df_barom_evol['count'] /
@@ -283,7 +292,7 @@ if page == pages[3] :
 
 
 
-  if page = 'General feeling scores':
+  if page == 'General feeling scores':
 
     df_barom = df_barom.drop(columns=['uid', 'q01'])
     
@@ -319,7 +328,7 @@ if page == pages[3] :
     pages_names_indiv = ['General feeling','Security','Comfort','Efforts','Service and parking lots']
     page_indiv = st.radio('Individual feeling topic scores', page_names_indiv)
 
-    if page = 'General feeling':
+    if page == 'General feeling':
       data_feel = {'General feeling': ['In my opinion, bike usage in my municipality is',
                                  'The cycle route network of my municipality allows me to go everywhere quickly and directly',
                                  'Cycling in your municipality is',
@@ -341,9 +350,9 @@ if page == pages[3] :
       st.pyplot(fig)
 
 
-    #  st.write("From a general feeling , the city of Paris got a global score of 3.31 on a scale of 0 to 6 alongside with all five topics \
-    scoring between 3.06 and 3.61: Security scores the worst with 3.06 whereas efforts score the best with 3.61. This proves that the municipality efforts \
-    are recognized, but not sufficient in terms of security for exampel for bike users. ")
+      st.write("From a general feeling, the city of Paris got a global score of 3.31 on a scale of 0 to 6 alongside with all five topics \
+        scoring between 3.06 and 3.61: Security scores the worst with 3.06 whereas efforts score the best with 3.61. This proves that the municipality efforts \
+        are recognized, but not sufficient in terms of security for exampel for bike users. ")
 
 #  We can then conclude from this general analysis that the city of Paris on a scale from 0 to 6 does not score well with a global score of 3.31: 
 # Even if the cycling traffic is progressing, users still perceived security to be an important issue, in particular when crossing a junction or a 
@@ -352,7 +361,7 @@ if page == pages[3] :
 # in favor of cycling with respective scores of 4.60 and 4.09 were positively perceived, although motorized vehicles parking on cycle lanes is still 
 # being very negatively perceived and seen as a real issue encountered too many times (score of 1.92).
 
-    if page = 'Security':
+    if page == 'Security':
       data_secu = {'Security': ['I can cycle in security in residential streets',
                             'I can safely cycle on the major traffic routes ',
                             'In general, when cycling in my municipality I feel',
@@ -374,7 +383,7 @@ if page == pages[3] :
       st.pyplot(fig)
 
 
-    if page = 'Comfort':
+    if page == 'Comfort':
       data_com = {'Comfort': ['When cycling, I am allowed to use one-way roads against the traffic',
                             'In my opinion, cycling routes are',
                             'The maintenance of cycling routes is',
@@ -395,8 +404,8 @@ if page == pages[3] :
       st.pyplot(fig)
 
     
-    if page = 'Efforts':
-      data_eff = {'Efforts': ['In my opinion, efforts made by the municipality in favor of cycling are' ,
+    if page == 'Efforts':
+      data_eff== {'Efforts': ['In my opinion, efforts made by the municipality in favor of cycling are' ,
                             'Communication made in favor of cycling mobility is',
                             'City hall is listening to cycling users needs, involve them into their reflections on mobility and urban development projects',
                             'In my opinion, parking of motorized vehicles (cars, trucks, motorcycles...) on cycling routes is'],
@@ -416,7 +425,7 @@ if page == pages[3] :
 
     
     else:
-      data_park = {'Parking': ['Near or within the municipality, to find a cycling store or a repair shop is' ,
+      data_park == {'Parking': ['Near or within the municipality, to find a cycling store or a repair shop is' ,
                             'To rent a bike for a few hours or months is',
                             'Near or within the municipality, to find a parking lot adapted to my specific needs is',
                             'To park its bike at a railway station or a public transportation station is',
@@ -438,10 +447,9 @@ if page == pages[3] :
 
 
 
-
-
-
-if page == pages[4] : 
+if page == pages[4] :
+  model_file = "RFR.sav"
+  model = load_model(model_file)
   st.title("Machine Learning")
   st.write("### Data Preprocessing")
   st.write("#### Train, Test, Split")
@@ -490,3 +498,5 @@ X_train, X_test, y_train, y_test = train_test_split(feats, target, test_size=0.2
   st.write("The scores of the algorithms were used to determine which algorithms to look further into.")
   
   st.write("### Predictions")
+  
+  
