@@ -11,8 +11,9 @@ import geopandas as gpd
 import ssl
 ssl._create_default_https_context = ssl._create_unverified_context
 
-# import the main dataframe
+# import the main dataframe and the barometer dataframe
 df = pd.read_csv("https://fwpn.uber.space/media/CyclingTrafficInParis_eng.csv")
+df_barom = pd.read_csv("/Users/marine/Desktop/WEITERBILDUNG DATA ANALYST 2023/PROJECT/a1b3c948f6528b25ac3eed375d7ca28b/reponses-departement-75.csv", sep = ",")
 
 #st.set_page_config(layout="wide")   #this eliminates margins left and right on wider screens, but some plots do not work well with it 
 
@@ -220,14 +221,136 @@ if page == pages[1]:
                     font=dict(size=18, color="Black"))
     st.plotly_chart(fig)
 
+
+
 if page == pages[2] : 
   st.title("Weather & Traffic")
 
 
 
 
+
+
 if page == pages[3] : 
-  st.title("Interview & Barometer")
+  st.title("### Interview & Barometer")
+  st.header("#### Data Collection and Pre-Processing")
+   
+  # presentation of the data (volume, architecture, etc.) and cleaning steps
+  
+    st.write("We retrieved bike user’s opinions from the last survey on the bikers-cities in France made available for year 2021 and carried out by the \
+    French bicycle users federation (Fédération des Usagers de la Bicyclette – FUB). In this survey, there was a total of 29 questions asked to users split \ 
+    into five different topics from their general feeling in terms of security and comfort to the current infrastructure and amenities as well the current \
+    public policies to promote bike use where participants express their opinion on a scale of 6 points (for example on security matters 1 being \
+    ‘not feeling safe’ and 6 being ‘feeling safe’). A global note was then calculated from the average of each five topics.\
+    We could retrieve for the city of Paris alone 9,116 responses which we further analyze, after having resized the dataset and added some information \
+    (total sum,etc...). ") 
+
+    st.dataframe(df_barom.head(10))
+
+  
+  # data analysis using DataVizualization figures
+  # Viz on evolution and general feeling scores for city of Paris
+
+  page_names = ['General evolution score','General feeling scores','Individual feeling topic scores']
+  page = st.radio('Barometer general results 2021', page_names)
+
+  if page = 'General evolution score':
+    df_barom = df_barom.drop(columns=['uid', 'q01'])
+    df_barom_evol = df_barom.groupby('q13', as_index=False)['q13'].value_counts()
+    df_barom_evol['percent'] = ((df_barom_evol['count'] /
+                  df_barom_evol['count'].sum()) * 100).round(2)
+    list_evol = {1: 'Highly deteriorated',
+               2: 'Slightly deteriorated',
+               3: 'Identical',
+              4: 'Slightly ameliorated',
+              5: 'Highly ameliorated'}
+    df_barom_evol['q13_name'] = df_barom_evol['q13'].map(list_evol)
+
+    fig = plt.figure()
+    plt.rcParams["figure.figsize"] = (10, 6)
+    ax = sns.barplot(x = 'q13_name', y = 'percent', data = df_barom_evol, errorbar=('ci', False))
+    ax.bar_label(ax.containers[0], label_type='edge',fmt='%.1f%%')
+
+    plt.xlabel("Situation")
+    plt.ylabel("%")
+    plt.title("General evolution score")
+    st.pyplot(fig)
+
+    st.write("From this general evolution score, we observe that 81,7% of the respondents found the situation has slightly or highly positively evolved \
+    whereas 8,8% are of the opinion that it has deteriorated either highly or slightly. 9.5% of the respondents perceived an identical situation with \
+    no amelioration or deterioration.")
+
+
+
+  if page = 'General feeling scores':
+
+    df_barom = df_barom.drop(columns=['uid', 'q01'])
+    
+    General_feeling = df_barom[['q14', 'q15', 'q16', 'q17','q18','q19']].sum().sum() / (9116*6)
+    Security = df_barom[['q20', 'q21', 'q22', 'q23','q24','q25']].sum().sum() / (9116*6)
+    Comfort = df_barom[['q26', 'q27', 'q28', 'q29','q30']].sum().sum() / (9116*5)
+    Efforts = df_barom[['q31', 'q32', 'q33', 'q34']].sum().sum() / (9116*4)
+    Services_and_parking_lots = df_barom[['q35', 'q36', 'q37', 'q38','q39']].sum().sum() / (9116*5)
+    Global_score = df_barom[['q14', 'q15', 'q16', 'q17','q18','q19','q20', 'q21', 'q22', 'q23','q24','q25','q26', 'q27', 'q28', 'q29','q30','q31', 'q32', 'q33', 'q34','q35', 'q36', 'q37', 'q38','q39']].sum().sum() / (9116*26)
+
+    data = {'Topics': ['General feeling','Security','Comfort','Efforts', 'Services and parking lots', 'Global score'],
+        'Score': [3.27,3.06,3.31,3.61,3.40,3.31]}
+    df_barom_gen = pd.DataFrame(data)
+
+    fig = plt.figure()
+    plt.rcParams["figure.figsize"] = (12, 6)
+    ax = sns.barplot(x = 'Topics', y = 'Score', data = df_barom_gen, errorbar=('ci', False))
+    ax.bar_label(ax.containers[0], label_type='edge')
+
+    plt.ylim(0, 6)
+    plt.xlabel("")
+    plt.ylabel("Score")
+    plt.title("Barometer general results overview")
+    st.pyplot(fig)
+
+    st.write("From this general feeling scores, the city of Paris got a global score of 3.31 on a scale of 0 to 6 alongside with all five topics \
+    scoring between 3.06 and 3.61: Security scores the worst with 3.06 whereas efforts score the best with 3.61. This proves that the municipality efforts \
+    are recognized, but not sufficient in terms of security for exampel for bike users. ")
+
+
+
+  else:
+    st.subheader('Individual feeling topic scores')
+    pages_names_indiv = ['General feeling','Security','Comfort','Efforts','Service and parking lots']
+    page_indiv = st.radio('Individual feeling topic scores', page_names_indiv)
+
+    if page = 'General feeling':
+
+
+    if page = 'Security':
+
+
+    if page = 'Comfort':
+
+
+    if page = 'Efforts':
+
+
+    else:
+
+
+
+
+
+# st.write("From this general feeling scores, the city of Paris got a global score of 3.31 on a scale of 0 to 6 alongside with all five topics \
+    scoring between 3.06 and 3.61: Security scores the worst with 3.06 whereas efforts score the best with 3.61. This proves that the municipality efforts \
+    are recognized, but not sufficient in terms of security for exampel for bike users. ")
+
+#  We can then conclude from this general analysis that the city of Paris on a scale from 0 to 6 does not score well with a global score of 3.31: 
+# Even if the cycling traffic is progressing, users still perceived security to be an important issue, in particular when crossing a junction or a 
+# round-about (score of 1.98 on this question) or for children and seniors (score of 2.51 on this question). 
+# The efforts made by the municipality were however highlighted with a score of 3.61: in particular, efforts made towards cycling and communication 
+# in favor of cycling with respective scores of 4.60 and 4.09 were positively perceived, although motorized vehicles parking on cycle lanes is still 
+# being very negatively perceived and seen as a real issue encountered too many times (score of 1.92).
+
+
+
+
 
 if page == pages[4] : 
   st.title("Machine Learning")
