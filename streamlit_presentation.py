@@ -35,7 +35,7 @@ st.header("From October 2022 to November 2023")
 
 ## table of contents
 st.sidebar.title("Table of contents")
-pages=["Summary", "Cycling Traffic", "Weather & Traffic", "Interview / Barometer", "Machine Learning"]
+pages=["Summary", "Cycling Traffic", "Weather & Traffic", "Interview / Barometer", "Machine Learning", "Conclusion"]
 page=st.sidebar.radio("Go to", pages)
 
 ## about
@@ -623,3 +623,20 @@ X_train, X_test, y_train, y_test = train_test_split(feats, target, test_size=0.2
   st.write("### Predictions")
   
   
+if page == pages[5]:  # Conclusion
+  st.title("Conclusion")
+  st.markdown(
+    """
+    ### Introduction
+
+    Lorem ipsum dolor sit amet
+
+    ### Data Gathering and Processing
+
+    Lorem ipsum dolor sit amet
+
+    ### Predictive Modeling with Machine Learning
+
+    Lorem ipsum dolor sit amet
+    """
+  )
