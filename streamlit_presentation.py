@@ -23,14 +23,16 @@ def load_data(filename):
   return df
 
 df = load_data("CyclingTrafficInParis_eng.csv")
-df_barom = load_data("reponses-departement-75.csv")
-df_counter= load_data("Counters.csv")
-df_training_set= load_data("WeatherAndTraffic.csv")
+#df_barom = load_data("reponses-departement-75.csv")
+#df_counter= load_data("Counters.csv")
+#df_training_set= load_data("WeatherAndTraffic.csv")
+#model_file = "RFR.sav"
 
-
-#df = load_data("https://fwpn.uber.space/media/CyclingTrafficInParis_eng.csv")
-#df_barom = load_data("https://fwpn.uber.space/media/reponses-departement-75.csv")
-#df_counter= load_data("https://fwpn.uber.space/media/Counters.csv")
+df = load_data("https://fwpn.uber.space/media/CyclingTrafficInParis_eng.csv")
+df_barom = load_data("https://fwpn.uber.space/media/reponses-departement-75.csv")
+df_counter= load_data("https://fwpn.uber.space/media/Counters.csv")
+df_training_set= load_data("https://fwpn.uber.space/media/WeatherAndTraffic.csv")
+model_file = "https://fwpn.uber.space/media/RFR.sav"
 
 @st.cache_resource
 def load_model(filename):
@@ -264,8 +266,8 @@ if page == pages[2]:  # Weather & Traffic
   df_final_W = df.merge(right = df_W, on = "Date and time of count", how = "left")
 
   ## Temp + Rain infos only different hours not always corresponding to traffic cycling DF > Following strategy: fill in missing values with next precedent available information
-  # Sorting final DF based on columns "Counter ID" and ‘Date and time of count" and resetting index
-  df_final_W.sort_values(by=["Counter ID","Date and time of count"], inplace = True)
+  # Sorting final DF based on columns "Counter name" and ‘Date and time of count" and resetting index
+  df_final_W.sort_values(by=["Counter name","Date and time of count"], inplace = True)
   df_final_W = df_final_W.reset_index()
   df_final_W=df_final_W.drop("index", axis="columns")
 
@@ -599,7 +601,6 @@ if page == pages[3]:  # Interview & Barometer
 
 
 if page == pages[4]:  # Machine Learning
-  model_file = "RFR.sav"
   model = load_model(model_file)
   
   st.title("Machine Learning")
@@ -660,7 +661,7 @@ circular_train.loc[:, "cos_hour"] = circular_train.loc[:, "hour_of_day"].apply(l
   with cols[1]:
     dateSelect = st.date_input("Date", value=datetime.date(2022,10,1), min_value=datetime.date(2022,10,1), max_value=datetime.date(2023,10,31), key=None,
           help=None, on_change=None, args=None, kwargs=None, format="DD/MM/YYYY", disabled=False, label_visibility="visible")
-  
+  dateSelect = pd.to_datetime(dateSelect)
   if counterSelect[-2] == "-": #checks true for the main directions
     if counterSelect[-1] == "S": direction = "South"
     elif counterSelect[-1] == "O": direction = "West"
@@ -672,7 +673,7 @@ circular_train.loc[:, "cos_hour"] = circular_train.loc[:, "hour_of_day"].apply(l
     elif counterSelect[len(counterSelect)-2 :] == "NE": direction = "Northeast"
     else: direction = "Southeast"
   
-  df_weather_holiday = load_data("Counters_Weather_Holiday.csv")
+  df_weather_holiday = load_data("https://fwpn.uber.space/media/Counters_Weather_Holiday.csv")
 
   df_weather_holiday["date"] = pd.to_datetime(df_weather_holiday["date"])
 
@@ -681,12 +682,12 @@ circular_train.loc[:, "cos_hour"] = circular_train.loc[:, "hour_of_day"].apply(l
 
   CounterLatitude = df_counter.loc[df_counter["Counter name"] == counterSelect].Latitude.iloc[0]
   CounterLongitude = df_counter.loc[df_counter["Counter name"] == counterSelect].Longitude.iloc[0]
-  weekday = df_weather_holiday.loc[df_weather_holiday["date"] == pd.to_datetime(dateSelect)].weekday_of_count.iloc[0]
+  weekday = df_weather_holiday.loc[df_weather_holiday["date"] == dateSelect].weekday_of_count.iloc[0]
 
   sin_weekday = np.sin(weekday * 2 * np.pi / 7)
   cos_weekday = np.cos(weekday * 2 * np.pi / 7)
 
-  df_to_predict = df_weather_holiday.loc[df_weather_holiday["date"] == pd.to_datetime(dateSelect)][["Humidity","Rain_last3H","Temp_°C","Month and year of count","holiday","day","weekday_of_count","hour_of_day"]]
+  df_to_predict = df_weather_holiday.loc[df_weather_holiday["date"] == dateSelect][["Humidity","Rain_last3H","Temp_°C","Month and year of count","holiday","day","weekday_of_count","hour_of_day"]]
   df_to_predict.insert(0, "Latitude", CounterLatitude)
   df_to_predict.insert(0, "Longitude", CounterLongitude)
   df_to_predict.insert(0, "direction", direction)
@@ -696,13 +697,14 @@ circular_train.loc[:, "cos_hour"] = circular_train.loc[:, "hour_of_day"].apply(l
   df_to_predict.loc[:, 'cos_hour'] = df_to_predict.loc[:, 'hour_of_day'].apply(lambda h : np.cos(2 * np.pi * h / 24))
   df_to_predict.loc[:, 'sin_weekday'] = df_to_predict.loc[:, 'weekday_of_count'].apply(lambda h : np.sin(2 * np.pi * h / 7))
   df_to_predict.loc[:, 'cos_weekday'] = df_to_predict.loc[:, 'weekday_of_count'].apply(lambda h : np.cos(2 * np.pi * h / 7))
-  #st.write(df_to_predict.head(24))
 
   df_to_predict = df_to_predict.drop(['hour_of_day','weekday_of_count'],axis = 1)
   df_to_predict.reset_index(inplace = True, drop = True)
+
   categoricals = ["direction", "Month and year of count","holiday"]
   numericals = ["day", "Latitude", "Longitude","Humidity","Temp_°C","Rain_last3H"]
   cyclicals = ["sin_hour","cos_hour","sin_weekday","cos_weekday"]
+  
   ohe = OneHotEncoder(drop="first",  sparse_output=False)
   ohe.fit(df_training_set[categoricals])
   df_categoricals= pd.DataFrame(ohe.transform(df_to_predict[categoricals]))
@@ -714,7 +716,20 @@ circular_train.loc[:, "cos_hour"] = circular_train.loc[:, "hour_of_day"].apply(l
   df_numericals.columns= sc.get_feature_names_out()
   
   X_predict = pd.concat([df_numericals, df_categoricals, df_to_predict[cyclicals]], axis =1)
-  #st.write(X_predict.head(24))
 
   y_predict = model.predict(X_predict)
-  st.write(y_predict.round(decimals=0, out=None))
+
+  df.date = pd.to_datetime(df.date)
+
+  Prediction = pd.Series(y_predict.round(decimals=0, out=None))
+  TrueValues = df.loc[(df_true["Counter name"] == counterSelect) & (df_true.date == dateSelect)]["Hourly count"]
+  TrueValues = TrueValues.reset_index(drop = True)
+  metrics = pd.concat([Prediction,TrueValues], axis = 1)
+  metrics.columns.values[0] = "Predictions"
+  
+  #st.write(metrics.head(24))
+  fig = px.line(metrics, y =["Predictions","Hourly count"], x = metrics.index, title = "Predicted and true values")
+  fig.update_layout( xaxis_title="Time of day", yaxis_title="7 day avg"
+)
+  st.plotly_chart(fig)
+
