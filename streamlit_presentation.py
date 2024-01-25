@@ -729,7 +729,6 @@ circular_train.loc[:, "cos_hour"] = circular_train.loc[:, "hour_of_day"].apply(l
   
   #st.write(metrics.head(24))
   fig = px.line(metrics, y =["Predictions","Hourly count"], x = metrics.index, title = "Predicted and true values")
-  fig.update_layout( xaxis_title="Time of day", yaxis_title="7 day avg"
-)
+  fig.update_layout( xaxis_title="Time of day")
   st.plotly_chart(fig)
 
