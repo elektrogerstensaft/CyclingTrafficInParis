@@ -2,7 +2,6 @@ matplotlib==3.8.2
 seaborn==0.13.1
 plotly
 geopandas
-pickle
 urllib.request
 sklearn.preprocessing 
 datetime
