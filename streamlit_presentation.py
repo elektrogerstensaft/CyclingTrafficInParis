@@ -22,7 +22,7 @@ def load_data(filename):
   df = pd.read_csv(filename)
   return df
 
-df = load_data("CyclingTrafficInParis_eng.csv")
+#df = load_data("CyclingTrafficInParis_eng.csv")
 #df_barom = load_data("reponses-departement-75.csv")
 #df_counter= load_data("Counters.csv")
 #df_training_set= load_data("WeatherAndTraffic.csv")
