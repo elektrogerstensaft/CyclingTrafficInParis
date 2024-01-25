@@ -1,6 +1,7 @@
 import pandas as pd
 import numpy as np
 from sklearn.model_selection import train_test_split
+from pickle import dump
 
 df = pd.read_csv("WeatherAndTraffic.csv", sep = ",")
 
@@ -15,7 +16,10 @@ circular = ["hour_of_day", "weekday_of_count"]
 
 from sklearn.preprocessing import OneHotEncoder
 ohe = OneHotEncoder(drop="first",  sparse_output=False)
+
 X_train_Cat = pd.DataFrame(ohe.fit_transform(X_train[cat]))
+dump(ohe, open('encoder.pkl', 'wb'))
+
 X_train_Cat.columns= ohe.get_feature_names_out()
 
 X_test_Cat = pd.DataFrame(ohe.transform(X_test[cat]))
@@ -24,7 +28,9 @@ X_test_Cat.columns= ohe.get_feature_names_out()
 from sklearn.preprocessing import StandardScaler
 sc = StandardScaler()
 X_train[num] = sc.fit_transform(X_train[num])
+dump(sc, open('scaler.pkl', 'wb'))
 X_test[num] = sc.transform(X_test[num])
+
 
 circular_train = X_train[circular]
 circular_test = X_test[circular]

@@ -8,6 +8,9 @@ import plotly.graph_objects as go
 import geopandas as gpd
 import pickle
 from urllib.request import urlopen
+from sklearn.preprocessing import OneHotEncoder
+from sklearn.preprocessing import StandardScaler
+import datetime
 
 # in rare cases there might be a SSL error:
 import ssl
@@ -15,17 +18,27 @@ ssl._create_default_https_context = ssl._create_unverified_context
 
 # import the main dataframe and the barometer dataframe
 @st.cache_data
-def load_data(url):
-    df = pd.read_csv(url)
-    return df
+def load_data(filename):
+  df = pd.read_csv(filename)
+  return df
 
-df = load_data("https://fwpn.uber.space/media/CyclingTrafficInParis_eng.csv")
-df_barom = load_data("https://fwpn.uber.space/media/reponses-departement-75.csv")
+df = load_data("CyclingTrafficInParis_eng.csv")
+df_barom = load_data("reponses-departement-75.csv")
+df_counter= load_data("Counters.csv")
+df_training_set= load_data("WeatherAndTraffic.csv")
+
+
+#df = load_data("https://fwpn.uber.space/media/CyclingTrafficInParis_eng.csv")
+#df_barom = load_data("https://fwpn.uber.space/media/reponses-departement-75.csv")
+#df_counter= load_data("https://fwpn.uber.space/media/Counters.csv")
 
 @st.cache_resource
 def load_model(filename):
+  if filename.startswith("http"):
+    model = pickle.load(urlopen(filename))
+  else:
     model = pickle.load(open(filename, 'rb'))
-    return model
+  return model
 
 #st.set_page_config(layout="wide")   #this eliminates margins left and right on wider screens, but some plots do not work well with it 
 
@@ -197,8 +210,7 @@ if page == pages[1]:  # Cycling traffic
               some arrondissements not having in addition any counter site at all \n \
               The dot size on the map indicates how many bicycles were counted. It appears that traffic is higher in the centre. The three counters with the most traffic are:" \
               , df_top3["Counter name"].unique())
-    #st.write(df_top3["Counter name"].unique())
-    df_counter= pd.read_csv("Counters.csv", sep= ",")
+    
     df_counter.set_index("Counter name", inplace = True)
     df_reduced = df.drop(["Counter ID","Counting site installation date","Geographic coordinates", "Counting site ID"], axis = 1)   
     df_reduced.rename({"Hourly count":"Total count"}, axis="columns", inplace=True)
@@ -231,7 +243,6 @@ if page == pages[1]:  # Cycling traffic
                     margin={"r":0,"t":0,"l":0,"b":0},
                     font=dict(size=18, color="Black"))
     st.plotly_chart(fig)
-
 
 ## THE FOLLOWING PAGE IS NOT FINISHED YET
 
@@ -573,6 +584,7 @@ if page == pages[3]:  # Interview & Barometer
 if page == pages[4] :
   model_file = "RFR.sav"
   model = load_model(model_file)
+  
   st.title("Machine Learning")
   st.write("### Data Preprocessing")
   st.write("#### Train, Test, Split")
@@ -586,8 +598,8 @@ X_train, X_test, y_train, y_test = train_test_split(feats, target, test_size=0.2
   st.code(code, language="python")
   st.write("The feature were split into 3 variable types: categorical, numerical and cyclical.")
   code="""cat = ["direction", "Month and year of count","holiday"]
-    num = ["day", "Latitude", "Longitude","Humidity","Temp_°C","Rain_last3H"]
-    circular = ["hour_of_day", "weekday_of_count"]"""
+num = ["day", "Latitude", "Longitude","Humidity","Temp_°C","Rain_last3H"]
+circular = ["hour_of_day", "weekday_of_count"]"""
   st.code(code, language= "python")
 
   st.write("#### Normalisation")  
@@ -608,10 +620,8 @@ X_train, X_test, y_train, y_test = train_test_split(feats, target, test_size=0.2
 
   st.write("The cyclical variables were treated with sine and cosine functions like this:")
   code="""circular_train.loc[:, "sin_hour"] = circular_train.loc[:, "hour_of_day"].apply(lambda h : np.sin(2 * np.pi * h / 24))
-    circular_train.loc[:, "cos_hour"] = circular_train.loc[:, "hour_of_day"].apply(lambda h : np.cos(2 * np.pi * h / 24))"""
+circular_train.loc[:, "cos_hour"] = circular_train.loc[:, "hour_of_day"].apply(lambda h : np.cos(2 * np.pi * h / 24))"""
   st.code(code, language= "python")
- 
-
 
   st.write("### Algorithms")
   st.write("Since the target variable is numerical and not binary, the prediction is a regression problem. The following regression algorithms were tested:")
@@ -621,5 +631,73 @@ X_train, X_test, y_train, y_test = train_test_split(feats, target, test_size=0.2
   st.write("The scores of the algorithms were used to determine which algorithms to look further into.")
   
   st.write("### Predictions")
+
+  cols=st.columns(2)
+  with cols[0]:
+    counterSelect = st.selectbox(
+      "Counter selection",
+      (df_counter["Counter name"]),
+      index=0,
+      placeholder="Select a counter",
+    )
+  with cols[1]:
+    dateSelect = st.date_input("Date", value=datetime.date(2022,10,1), min_value=datetime.date(2022,10,1), max_value=datetime.date(2023,10,31), key=None,
+          help=None, on_change=None, args=None, kwargs=None, format="DD/MM/YYYY", disabled=False, label_visibility="visible")
   
+  if counterSelect[-2] == "-": #checks true for the main directions
+    if counterSelect[-1] == "S": direction = "South"
+    elif counterSelect[-1] == "O": direction = "West"
+    elif counterSelect[-1] == "E": direction = "East"
+    else: direction = "North"
+  else:
+    if counterSelect[len(counterSelect)-2 :] == "SO": direction = "Southwest"
+    elif counterSelect[len(counterSelect)-2 :] == "NO": direction = "Northwest"
+    elif counterSelect[len(counterSelect)-2 :] == "NE": direction = "Northeast"
+    else: direction = "Southeast"
   
+  df_weather_holiday = load_data("Counters_Weather_Holiday.csv")
+
+  df_weather_holiday["date"] = pd.to_datetime(df_weather_holiday["date"])
+
+  df_true = df_weather_holiday.drop(columns = ["Month and year of count","weekday_of_count","holiday","Humidity","Rain_last3H","Temp_°C"])
+  df_weather_holiday = df_weather_holiday.drop(columns = ["Counter name","Hourly count"]).drop_duplicates(subset=["date","hour_of_day"],keep="first")
+
+  CounterLatitude = df_counter.loc[df_counter["Counter name"] == counterSelect].Latitude.iloc[0]
+  CounterLongitude = df_counter.loc[df_counter["Counter name"] == counterSelect].Longitude.iloc[0]
+  weekday = df_weather_holiday.loc[df_weather_holiday["date"] == pd.to_datetime(dateSelect)].weekday_of_count.iloc[0]
+
+  sin_weekday = np.sin(weekday * 2 * np.pi / 7)
+  cos_weekday = np.cos(weekday * 2 * np.pi / 7)
+
+  df_to_predict = df_weather_holiday.loc[df_weather_holiday["date"] == pd.to_datetime(dateSelect)][["Humidity","Rain_last3H","Temp_°C","Month and year of count","holiday","day","weekday_of_count","hour_of_day"]]
+  df_to_predict.insert(0, "Latitude", CounterLatitude)
+  df_to_predict.insert(0, "Longitude", CounterLongitude)
+  df_to_predict.insert(0, "direction", direction)
+
+
+  df_to_predict.loc[:, 'sin_hour'] = df_to_predict.loc[:, 'hour_of_day'].apply(lambda h : np.sin(2 * np.pi * h / 24))
+  df_to_predict.loc[:, 'cos_hour'] = df_to_predict.loc[:, 'hour_of_day'].apply(lambda h : np.cos(2 * np.pi * h / 24))
+  df_to_predict.loc[:, 'sin_weekday'] = df_to_predict.loc[:, 'weekday_of_count'].apply(lambda h : np.sin(2 * np.pi * h / 7))
+  df_to_predict.loc[:, 'cos_weekday'] = df_to_predict.loc[:, 'weekday_of_count'].apply(lambda h : np.cos(2 * np.pi * h / 7))
+  #st.write(df_to_predict.head(24))
+
+  df_to_predict = df_to_predict.drop(['hour_of_day','weekday_of_count'],axis = 1)
+  df_to_predict.reset_index(inplace = True, drop = True)
+  categoricals = ["direction", "Month and year of count","holiday"]
+  numericals = ["day", "Latitude", "Longitude","Humidity","Temp_°C","Rain_last3H"]
+  cyclicals = ["sin_hour","cos_hour","sin_weekday","cos_weekday"]
+  ohe = OneHotEncoder(drop="first",  sparse_output=False)
+  ohe.fit(df_training_set[categoricals])
+  df_categoricals= pd.DataFrame(ohe.transform(df_to_predict[categoricals]))
+  df_categoricals.columns= ohe.get_feature_names_out()
+
+  sc = StandardScaler()
+  sc.fit(df_training_set[numericals])
+  df_numericals = pd.DataFrame(sc.transform(df_to_predict[numericals]))
+  df_numericals.columns= sc.get_feature_names_out()
+  
+  X_predict = pd.concat([df_numericals, df_categoricals, df_to_predict[cyclicals]], axis =1)
+  #st.write(X_predict.head(24))
+
+  y_predict = model.predict(X_predict)
+  st.write(y_predict.round(decimals=0, out=None))
