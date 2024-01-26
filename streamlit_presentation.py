@@ -11,6 +11,8 @@ from urllib.request import urlopen
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.preprocessing import StandardScaler
 import datetime
+from scipy.stats import pearsonr
+
 
 # in rare cases there might be a SSL error:
 import ssl
@@ -247,140 +249,129 @@ if page == pages[1]:  # Cycling traffic
     st.plotly_chart(fig)
 
 ## THE FOLLOWING PAGE IS NOT FINISHED YET
+if page == pages[2]:  # Weather & Traffic
+    st.title("Weather & Traffic")
 
-if page == pages[2]:  # Weather & Traffic 
-  st.title("Weather & Traffic")
+    df_W = load_data("https://fwpn.uber.space/media/Weather_eng_final.csv")
 
-  df_W = load_data("https://fwpn.uber.space/media/Weather_eng_final.csv")
+    df_W = df_W.drop(columns=["date", "year", "month", "year_month", "day", "time"])  # prevents duplicated columns with x / y
 
-  df_W = df_W.drop(columns = ["date", "year", "month", "year_month", "day", "time"]) #prevents duplicated columns with x / y
+    df_W.rename({"Date_original": "Date and time of count"}, axis=1, inplace=True)
+    df_W["Date and time of count"] = pd.to_datetime(df_W["Date and time of count"].str.replace("T", " "), utc=True)
 
-  # Weather DF: deleting substring "T" within column "Date_original" and renaming column "Date" for merging purposes
-  df_W.rename({"Date_original": "Date and time of count"}, axis=1, inplace=True)
-  df_W["Date and time of count"] = pd.to_datetime(df_W["Date and time of count"].str.replace("T"," "), utc=True)
-  print(df_W.head())
-  df["Date and time of count"] = pd.to_datetime(df["Date and time of count"], utc=True)
+    # Fixing problems with the data type mismatch
+    df["Date and time of count"] = pd.to_datetime(df["Date and time of count"], utc=True)
 
-
-  # Concatenating the two datasets based on column ‘Date and time of count’
-  df_final_W = df.merge(right = df_W, on = "Date and time of count", how = "left")
-
-  ## Temp + Rain infos only different hours not always corresponding to traffic cycling DF > Following strategy: fill in missing values with next precedent available information
-  # Sorting final DF based on columns "Counter name" and ‘Date and time of count" and resetting index
-  df_final_W.sort_values(by=["Counter name","Date and time of count"], inplace = True)
-  df_final_W = df_final_W.reset_index()
-  df_final_W=df_final_W.drop("index", axis="columns")
-
-  # Filling in missing values with the next previous information available
-  df_final_W = df_final_W.fillna(method="ffill")
-  #print(df_final_W.head())
-
-  # Last check on NaN
-  nan_count = df_final_W.isna().sum()
-  #print(nan_count)
-
-  # Replacing in final DF Cycling + weather -0.1mm precipitation with 0.00 (as cannot exist)
-  #print(df_final_W["Rain_last3H"].unique())
-  df_final_W["Rain_last3H"].replace(-0.1, 0, inplace=True)
-
-  df_final_W.info()
-  percent_missing = df.isnull().sum() * 100 / len(df)
-
-  # Min/ Max on temperatures + precipitation
-  print(df["Temp_°C"].min())
-  print(df["Temp_°C"].max())
-  df = df[df["Temp_°C"] >= 35]
-  df = df[df["Temp_°C"] <= -6]
-
-  print(df["Rain_last3H"].min())
-  print(df["Rain_last3H"].max())
-
-  df = df[df["Rain_last3H"] >= 0]
-  df = df[df["Rain_last3H"] <= 14.9]
+    # Concatenating the two datasets based on column ‘Date and time of count’
+    df_final_W = pd.merge_asof(df.sort_values("Date and time of count"), df_W.sort_values("Date and time of count"), on="Date and time of count", direction="nearest")
 
 
-  # Calculating correlation coefficient between 
-  np.corrcoef(df["Temp_°C"], df["Hourly count"])
-  np.corrcoef(df["Rain_last3H"], df["Hourly count"])
+    # Temp + Rain infos only different hours not always corresponding to traffic cycling DF > Following strategy: fill in missing values with next precedent available information
+    # Sorting final DF based on columns "Counter ID" and ‘Date and time of count" and resetting index
+    df_final_W.sort_values(by=["Date and time of count"], inplace=True)
+    df_final_W = df_final_W.reset_index()
+    df_final_W = df_final_W.drop("index", axis="columns")
 
+    # Filling in missing values with the next previous information available
+    df_final_W = df_final_W.fillna(method="ffill")
 
-  # Satistical tests on weather
-  #1)	Temp and hourly count
+    # Last check on NaN
+    nan_count = df_final_W.isna().sum()
 
-  from scipy.stats import pearsonr
-  pearsonr(x = df["Temp_°C"], y = df["Hourly count"]) 
+    # Replacing in final DF Cycling + weather -0.1mm precipitation with 0.00 (as cannot exist)
+    df_final_W["Rain_last3H"].replace(-0.1, 0, inplace=True)
 
-  print("p-value: ", pearsonr(x = df["Temp_°C"], y = df["Hourly count"])[1])
-  print("coefficient: ", pearsonr(x = df["Temp_°C"], y = df["Hourly count"])[0])
+    df_final_W.info()
+    percent_missing = df.isnull().sum() * 100 / len(df)
 
-  #2)	precipitations and hourly count
+    # Min/ Max on temperatures + precipitation
+    print(df["Temp_°C"].min())
+    print(df["Temp_°C"].max())
+    df = df[df["Temp_°C"] >= 35]
+    df = df[df["Temp_°C"] <= -6]
 
-  from scipy.stats import pearsonr
-  pearsonr(x = df["Rain_last3H"], y = df["Hourly count"]) 
+    print(df["Rain_last3H"].min())
+    print(df["Rain_last3H"].max())
 
-  print("p-value: ", pearsonr(x = df["Rain_last3H"], y = df["Hourly count"])[1])
-  print("coefficient: ", pearsonr(x = df["Rain_last3H"], y = df["Hourly count"])[0])
+    df = df[df["Rain_last3H"] >= 0]
+    df = df[df["Rain_last3H"] <= 14.9]
 
+    # Calculating correlation coefficient between
+    np.corrcoef(df["Temp_°C"], df["Hourly count"])
+    np.corrcoef(df["Rain_last3H"], df["Hourly count"])
 
-  # Impact of temp and precipitations on average hourly count
-  # Impact of temperatures < 5°C and viz
-  Temp = [] 
+    # Satistical tests on weather
+    # 1) Temp and hourly count
+    st.write("# Statistical tests on weather")
+    st.write("## 1) Temp and hourly count")
 
-  for row in df["Temp_°C"]:
-     if row < 5 : Temp.append("< 5°C") 
-     else: Temp.append("> 5°C") 
+    pearson_result_temp = pearsonr(x=df["Temp_°C"], y=df["Hourly count"])
 
-  df["Temp"] = Temp 
-  print(df.head())
+    st.write(f"Pearson correlation coefficient: {pearson_result_temp[0]}")
+    st.write(f"P-value: {pearson_result_temp[1]}")
 
-  df_temp = df.groupby("Temp", as_index=False)["Hourly count"].mean()
+    # 2) Precipitations and hourly count
+    st.write("## 2) Precipitations and hourly count")
 
-  plt.rcParams["figure.figsize"] = (4, 5)
-  ax = sns.barplot(x = "Temp", y = "Hourly count", data = df_temp, errorbar=("ci", False))
-  ax.bar_label(ax.containers[0], label_type="edge")
+    pearson_result_rain = pearsonr(x=df["Rain_last3H"], y=df["Hourly count"])
 
-  plt.xlabel("Temperatures")
-  plt.ylabel("Average hourly count")
-  plt.title("Impact of temperatures on cycling traffic")
-  plt.show()
+    st.write(f"Pearson correlation coefficient: {pearson_result_rain[0]}")
+    st.write(f"P-value: {pearson_result_rain[1]}")
 
+    # Impact of temp and precipitations on average hourly count
+    # Impact of temperatures < 5°C and viz
+    Temp = []
 
-  # Impact of temperatures > 25°C and viz
-  Temp2 = [] 
+    for row in df["Temp_°C"]:
+        if row < 5: Temp.append("< 5°C")
+        else: Temp.append("> 5°C")
 
-  for row in df["Temp_°C"]:
-    if row > 25: Temp2.append("> 25°C") 
-    else: Temp2.append("< 25°C") 
+    df["Temp"] = Temp
 
-  df["Temp2"] = Temp2 
-  print(df.head())
+    df_temp = df.groupby("Temp", as_index=False)["Hourly count"].mean()
 
+    plt.rcParams["figure.figsize"] = (4, 5)
+    ax = sns.barplot(x="Temp", y="Hourly count", data=df_temp, errorbar=("ci", False))
+    ax.bar_label(ax.containers[0], label_type="edge")
 
-  df_temp2 = df.groupby("Temp2", as_index=False)["Hourly count"].mean()
+    plt.xlabel("Temperatures")
+    plt.ylabel("Average hourly count")
+    plt.title("Impact of temperatures on cycling traffic")
+    plt.show()
 
-  plt.rcParams["figure.figsize"] = (4, 5)
-  ax = sns.barplot(x = "Temp2", y = "Hourly count", data = df_temp2, errorbar=("ci", False))
-  ax.bar_label(ax.containers[0], label_type="edge")
+    # Impact of temperatures > 25°C and viz
+    Temp2 = []
 
-  plt.xlabel("Temperatures")
-  plt.ylabel("Average hourly count")
-  plt.title("Impact of temperatures on cycling traffic")
+    for row in df["Temp_°C"]:
+        if row > 25: Temp2.append("> 25°C")
+        else: Temp2.append("< 25°C")
 
-  plt.show()
+    df["Temp2"] = Temp2
 
-  # Impact of precipitations and viz
+    df_temp2 = df.groupby("Temp2", as_index=False)["Hourly count"].mean()
 
-  df_rain = df.groupby("Rain_classes", as_index=False)["Hourly count"].mean()
+    plt.rcParams["figure.figsize"] = (4, 5)
+    ax = sns.barplot(x="Temp2", y="Hourly count", data=df_temp2, errorbar=("ci", False))
+    ax.bar_label(ax.containers[0], label_type="edge")
 
-  plt.rcParams["figure.figsize"] = (6, 6)
-  ax = sns.barplot(x = "Rain_classes", y = "Hourly count", data = df_rain, errorbar=("ci", False))
-  ax.bar_label(ax.containers[0], label_type="edge")
+    plt.xlabel("Temperatures")
+    plt.ylabel("Average hourly count")
+    plt.title("Impact of temperatures on cycling traffic")
 
-  plt.xlabel("Precipitation classes")
-  plt.ylabel("Average hourly count")
-  plt.title("Impact of precipitations on cycling traffic")
+    plt.show()
 
-  plt.show()
+    # Impact of precipitations and viz
+    df_rain = df.groupby("Rain_classes", as_index=False)["Hourly count"].mean()
+
+    plt.rcParams["figure.figsize"] = (6, 6)
+    ax = sns.barplot(x="Rain_classes", y="Hourly count", data=df_rain, errorbar=("ci", False))
+    ax.bar_label(ax.containers[0], label_type="edge")
+
+    plt.xlabel("Precipitation classes")
+    plt.ylabel("Average hourly count")
+    plt.title("Impact of precipitations on cycling traffic")
+
+    plt.show()
 
 
 if page == pages[3]:  # Interview & Barometer
