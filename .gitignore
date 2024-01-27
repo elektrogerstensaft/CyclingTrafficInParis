@@ -49,3 +49,5 @@ train.csv
 streamlit_app.py
 streamlit_app.py
 model
+data.csv
+import pandas as pd.py
