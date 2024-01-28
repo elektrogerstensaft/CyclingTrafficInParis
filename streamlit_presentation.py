@@ -241,8 +241,6 @@ if page == pages[1]:  # Cycling traffic
                     font=dict(size=18, color="Black"))
     st.plotly_chart(fig)
 
-## THE FOLLOWING PAGE IS NOT FINISHED YET
-
 if page == pages[2]:  # Weather & Traffic 
   st.title("Weather & Traffic")
 
@@ -250,77 +248,91 @@ if page == pages[2]:  # Weather & Traffic
   np.corrcoef(df["Temp_°C"], df["Hourly count"])
   np.corrcoef(df["Rain_last3H"], df["Hourly count"])
 
+  # Statistical tests on weather
+  st.markdown("---")
+  st.markdown("## Correlation Coefficients")
 
-    # Statistical tests on weather
-    # 1) Temp and hourly count
-  st.write("# Statistical tests on weather")
-  st.write("## 1) Temp and hourly count")
-
+  # 1) Temp and hourly count
   pearson_result_temp = pearsonr(x=df["Temp_°C"], y=df["Hourly count"])
 
-  st.write(f"Pearson correlation coefficient: {pearson_result_temp[0]}")
-  st.write(f"P-value: {pearson_result_temp[1]}")
+  st.info("### 1) Temp and hourly count")
+  st.write(f"Pearson correlation coefficient: {pearson_result_temp[0]:.2f}")
+  st.write(f"P-value: {pearson_result_temp[1]:.4f}")
 
-    # 2) Precipitations and hourly count
-  st.write("## 2) Precipitations and hourly count")
-
+  # 2) Precipitations and hourly count
   pearson_result_rain = pearsonr(x=df["Rain_last3H"], y=df["Hourly count"])
 
-  st.write(f"Pearson correlation coefficient: {pearson_result_rain[0]}")
-  st.write(f"P-value: {pearson_result_rain[1]}")
+  st.info("### 2) Precipitations and hourly count")
+  st.write(f"Pearson correlation coefficient: {pearson_result_rain[0]:.2f}")
+  st.write(f"P-value: {pearson_result_rain[1]:.4f}")
 
-    # Impact of temp and precipitations on average hourly count
-    # Impact of temperatures < 5°C and viz
+  # plots
+  st.markdown("---")
+  st.markdown("## Visualised impact of the temperature on cycling traffic")
+
+  visualisations = ["Temperature below/above 5°C", "Temperature below/above 25°C"]
+  temp_vis = st.selectbox("Select Temperature Visualization", visualisations, index=None, placeholder="Select temperature")
+
+  st.markdown("---")
+
+  # Impact of temp and precipitations on average hourly count
+  # Impact of temperatures < 5°C and viz
   Temp = []
 
   for row in df["Temp_°C"]:
-      if row < 5: Temp.append("< 5°C")
-      else: Temp.append("> 5°C")
+    if row < 5:
+        Temp.append("< 5°C")
+    else:
+        Temp.append("> 5°C")
 
   df["Temp"] = Temp
 
   df_temp = df.groupby("Temp", as_index=False)["Hourly count"].mean()
 
-  fig = plt.figure()
-  plt.rcParams["figure.figsize"] = (4, 5)
-  ax = sns.barplot(x = "Temp", y = "Hourly count", data = df_temp, errorbar=("ci", False))
-  ax.bar_label(ax.containers[0], label_type="edge")
-
-  plt.xlabel("Temperatures")
-  plt.ylabel("Average hourly count")
-  plt.title("Impact of temperatures on cycling traffic")
-  st.pyplot(fig)
-
-
-    # Impact of temperatures > 25°C and viz
+  # Impact of temperatures > 25°C and viz
   Temp2 = []
 
   for row in df["Temp_°C"]:
-      if row > 25: Temp2.append("> 25°C")
-      else: Temp2.append("< 25°C")
+    if row > 25:
+        Temp2.append("> 25°C")
+    else:
+        Temp2.append("< 25°C")
 
   df["Temp2"] = Temp2
 
   df_temp2 = df.groupby("Temp2", as_index=False)["Hourly count"].mean()
 
-  fig = plt.figure()
-  plt.rcParams["figure.figsize"] = (4, 5)
-  ax = sns.barplot(x = "Temp2", y = "Hourly count", data = df_temp2, errorbar=("ci", False))
-  ax.bar_label(ax.containers[0], label_type="edge")
+  # affect of temp on cycling traffic selection
+  if temp_vis == "Temperature below/above 5°C":
+    fig = plt.figure()
+    plt.rcParams["figure.figsize"] = (8, 6)
+    ax = sns.barplot(x="Temp", y="Hourly count", data=df_temp, errorbar=("ci", False))
+    ax.bar_label(ax.containers[0], label_type="edge", fmt="%.2f")
 
-  plt.xlabel("Temperatures")
-  plt.ylabel("Average hourly count")
-  plt.title("Impact of temperatures on cycling traffic")
+    plt.xlabel("Temperatures")
+    plt.ylabel("Average hourly count")
+    plt.title("Impact of temperatures on cycling traffic - Below/above 5°C")
+    st.pyplot(fig)
 
-  st.pyplot(fig)
+  elif temp_vis == "Temperature below/above 25°C":
+    fig = plt.figure()
+    plt.rcParams["figure.figsize"] = (8, 6)
+    ax = sns.barplot(x="Temp2", y="Hourly count", data=df_temp2, errorbar=("ci", False))
+    ax.bar_label(ax.containers[0], label_type="edge", fmt="%.2f")
 
-    # Impact of precipitations and viz
+    plt.xlabel("Temperatures")
+    plt.ylabel("Average hourly count")
+    plt.title("Impact of temperatures on cycling traffic - Below/above 25°C")
+    st.pyplot(fig)
+
+
+  # Impact of precipitations and viz
   df_rain = df.groupby("Rain_classes", as_index=False)["Hourly count"].mean()
 
   fig = plt.figure()
-  plt.rcParams["figure.figsize"] = (6, 6)
+  plt.rcParams["figure.figsize"] = (8, 8)
   ax = sns.barplot(x = "Rain_classes", y = "Hourly count", data = df_rain, errorbar=("ci", False))
-  ax.bar_label(ax.containers[0], label_type="edge")
+  ax.bar_label(ax.containers[0], label_type="edge", fmt="%.2f")
 
   plt.xlabel("Precipitation classes")
   plt.ylabel("Average hourly count")
