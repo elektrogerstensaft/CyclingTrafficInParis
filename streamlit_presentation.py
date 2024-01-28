@@ -277,8 +277,6 @@ if page == pages[2]:  # Weather & Traffic
   visualisations = ["Temperature below/above 5°C", "Temperature below/above 25°C"]
   temp_vis = st.selectbox("Select Temperature Visualization", visualisations, index=None, placeholder="Select temperature")
 
-  st.markdown("---")
-
   # Impact of temp and precipitations on average hourly count
   # Impact of temperatures < 5°C and viz
   Temp = []
@@ -317,7 +315,10 @@ if page == pages[2]:  # Weather & Traffic
     plt.ylabel("Average hourly count")
     plt.title("Impact of temperatures on cycling traffic - Below/above 5°C")
     st.pyplot(fig)
-
+    st.write("Drawing a comparison between these values, we observe that the average hourly count tends \
+             to increase as temperatures rise above 5°C. Specifically, the average hourly count in temperatures \
+             above 5°C is approximately 28% higher than in temperatures below 5°C.")
+    
   elif temp_vis == "Temperature below/above 25°C":
     fig = plt.figure()
     plt.rcParams["figure.figsize"] = (8, 6)
@@ -328,6 +329,36 @@ if page == pages[2]:  # Weather & Traffic
     plt.ylabel("Average hourly count")
     plt.title("Impact of temperatures on cycling traffic - Below/above 25°C")
     st.pyplot(fig)
+    st.write("A notable observation is the significant increase in cycling activity as temperatures rise above \
+             25°C. The average hourly count in temperatures exceeding 25°C is significantly higher compared to \
+             temperatures below this threshold, with an approximate difference of 74%!\
+             \n\n Comparing these results to the analysis of temperatures below and above 5°C, it is obvious that the \
+             influence of temperature on cycling patterns strengthen as temperatures rise. The earlier comparison \
+             indicated a 28% increase in average hourly count when transitioning from temperatures below 5°C to \
+             those above 5°C. In contrast, the shift from temperatures below 25°C to those above 25°C illustrates \
+             a more considerable difference, underlining the nonlinear relationship between temperature and cycling traffic.")
+
+  st.markdown("---")
+
+  # Impact of precipitations and viz
+  df_rain = df.groupby("Rain_classes", as_index=False)["Hourly count"].mean()
+
+  fig = plt.figure()
+  plt.rcParams["figure.figsize"] = (8, 8)
+  ax = sns.barplot(x = "Rain_classes", y = "Hourly count", data = df_rain, errorbar=("ci", False))
+  ax.bar_label(ax.containers[0], label_type="edge", fmt="%.2f")
+
+  plt.xlabel("Precipitation classes")
+  plt.ylabel("Average hourly count")
+  plt.title("Impact of precipitations on cycling traffic")
+  plt.xticks(rotation=45)
+  st.pyplot(fig)
+  
+  st.write("Comparing these values, we observe that the average hourly count tends to decrease as the\
+           intensity of precipitation increases. Specifically, the average hourly count during moderate \
+           rain is approximately 34% lower than during no rain/light rain. Similarly, the average hourly \
+           count during heavy rain shows a decrease of about 33% compared to the scenario with no rain/light \
+           rain.")
 
 
   # Impact of precipitations and viz
