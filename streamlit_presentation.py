@@ -81,25 +81,29 @@ st.sidebar.markdown(
 
 if page == pages[0]:  # Summary
   st.title("Summary")
-  st.markdown(
+  summary_markdown = """
+    <div style="font-size: 18px; line-height: 1.6;">
+
+    <h3>Introduction</h3>
+
+    <p>This data analysis conducts a comprehensive examination of cycling traffic within the city of Paris, utilizing publicly available data on cycling counts, meteorological conditions, and national holidays. The study yields insightful observations and valuable outcomes.</p>
+
+    <h3>Data Gathering and Processing</h3>
+
+    <p>In gathering and processing the data, a variety of factors were considered, going beyond the surface to understand the dynamics of traffic. This section delves into a careful analysis of counts and explores their interplay with changing weather patterns. The outcomes are presented through vivid traffic overview maps and a variety of charts, creating a clear and logical picture of the cycling scenario in Paris.</p>
+
+    <h3>Predictive Modeling with Machine Learning</h3>
+
+    <p>Leveraging the capabilities of machine learning, we designed predictive models that successfully anticipate cycling traffic patterns. This section details our approach, sharing insights gained from our models. The predictions provide a glimpse into the potential future cycling trends in the city.</p>
+
+    <h3>Executive Summary</h3>
+
+    <p>This executive summary aims to provide a brief yet precise overview of our comprehensive data analysis. It serves as a starting point for a deeper exploration within the complete report.</p>
+
+    </div>
     """
-    ### Introduction
 
-    This data analysis conducts a comprehensive examination of cycling traffic within the city of Paris, utilizing publicly available data on cycling counts, meteorological conditions, and national holidays. The study yields insightful observations and valuable outcomes.
-
-    ### Data Gathering and Processing
-
-    In gathering and processing the data, a variety of factors were considered, going beyond the surface to understand the dynamics of traffic. This section delves into a careful analysis of counts and explores their interplay with changing weather patterns. The outcomes are presented through vivid traffic overview maps and a variety of charts, creating a clear and logical picture of the cycling scenario in Paris.
-
-    ### Predictive Modeling with Machine Learning
-
-    Leveraging the capabilities of machine learning, we designed predictive models that successfully anticipate cycling traffic patterns. This section details our approach, sharing insights gained from our models. The predictions provide a glimpse into the potential future cycling trends in the city.
-
-    ### Executive Summary
-
-    This executive summary aims to provide a brief yet precise overview of our comprehensive data analysis. It serves as a starting point for a deeper exploration within the complete report.
-    """
-  )
+    st.markdown(summary_markdown, unsafe_allow_html=True)
 
 
 if page == pages[1]:  # Cycling traffic
@@ -339,6 +343,12 @@ if page == pages[2]:  # Weather & Traffic
   plt.title("Impact of precipitations on cycling traffic")
   plt.xticks(rotation=45)
   st.pyplot(fig)
+
+  st.write("Comparing these values, we observe that the average hourly count tends to decrease as the\
+           intensity of precipitation increases. Specifically, the average hourly count during moderate \
+           rain is approximately 34% lower than during no rain/light rain. Similarly, the average hourly \
+           count during heavy rain shows a decrease of about 33% compared to the scenario with no rain/light \
+           rain.")
 
 
 if page == pages[3]:  # Interview & Barometer
