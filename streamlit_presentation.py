@@ -81,29 +81,18 @@ st.sidebar.markdown(
 
 if page == pages[0]:  # Summary
   st.title("Summary")
-  summary_markdown = """
-    <div style="font-size: 18px; line-height: 1.6;">
+  
 
-    <h3>Introduction</h3>
-
-    <p>This data analysis conducts a comprehensive examination of cycling traffic within the city of Paris, utilizing publicly available data on cycling counts, meteorological conditions, and national holidays. The study yields insightful observations and valuable outcomes.</p>
-
-    <h3>Data Gathering and Processing</h3>
-
-    <p>In gathering and processing the data, a variety of factors were considered, going beyond the surface to understand the dynamics of traffic. This section delves into a careful analysis of counts and explores their interplay with changing weather patterns. The outcomes are presented through vivid traffic overview maps and a variety of charts, creating a clear and logical picture of the cycling scenario in Paris.</p>
-
-    <h3>Predictive Modeling with Machine Learning</h3>
-
-    <p>Leveraging the capabilities of machine learning, we designed predictive models that successfully anticipate cycling traffic patterns. This section details our approach, sharing insights gained from our models. The predictions provide a glimpse into the potential future cycling trends in the city.</p>
-
-    <h3>Executive Summary</h3>
-
-    <p>This executive summary aims to provide a brief yet precise overview of our comprehensive data analysis. It serves as a starting point for a deeper exploration within the complete report.</p>
-
-    </div>
-    """
-
-    st.markdown(summary_markdown, unsafe_allow_html=True)
+  st.markdown("<div style=\"font-size: 18px; line-height: 1.6;\"> \
+    <h3>Introduction</h3>\
+    <p>This data analysis conducts a comprehensive examination of cycling traffic within the city of Paris, utilizing publicly available data on cycling counts, meteorological conditions, and national holidays. The study yields insightful observations and valuable outcomes.</p> \
+    <h3>Data Gathering and Processing</h3>\
+    <p>In gathering and processing the data, a variety of factors were considered, going beyond the surface to understand the dynamics of traffic. This section delves into a careful analysis of counts and explores their interplay with changing weather patterns. The outcomes are presented through vivid traffic overview maps and a variety of charts, creating a clear and logical picture of the cycling scenario in Paris.</p>\
+    <h3>Predictive Modeling with Machine Learning</h3>\
+    <p>Leveraging the capabilities of machine learning, we designed predictive models that successfully anticipate cycling traffic patterns. This section details our approach, sharing insights gained from our models. The predictions provide a glimpse into the potential future cycling trends in the city.</p>\
+    <h3>Executive Summary</h3>\
+    <p>This executive summary aims to provide a brief yet precise overview of our comprehensive data analysis. It serves as a starting point for a deeper exploration within the complete report.</p>\
+    </div>", unsafe_allow_html=True)
 
 
 if page == pages[1]:  # Cycling traffic
@@ -137,40 +126,6 @@ if page == pages[1]:  # Cycling traffic
     for x in df_top3["Counter name"]:
         top3.append(x)
     df_top3 = df.loc[df["Counter name"].isin(top3)]
-
-
-    @st.cache_data
-    def weekly_plot(df):
-      fig = go.Figure(
-        data = go.Heatmap(
-            z = df["Hourly_count_sum"],
-            x = df["hour_of_day"],
-            y = df["weekday_of_count"]
-        )
-      )
-      fig.update_xaxes(title = "Hour of day")
-      fig.update_yaxes(title = "Weekday", categoryarray = order)
-      fig.update_layout(
-          title="Heatmap of daytimes per weekday with most bicycle traffic",
-          font=dict(size=20))
-      return(st.plotly_chart(fig))
-    
-    
-    @st.cache_data
-    def holiday_plot():
-      df_vac = df_top3.loc[df_top3["weekday_of_count"].str.contains('Sunday|Saturday') == False]
-      df_vac = df_vac.groupby(["date","holiday"]).agg({"Hourly count": "sum"})
-      df_vac = df_vac.reset_index()
-
-      g = sns.lineplot(data=df_vac, x = "date", y= "Hourly count")
-      g2 = sns.scatterplot(data=df_vac, x = "date", y= "holiday", ax = g.axes.twinx(), color='red')
-      g.set(xlabel = "Date", ylabel = "Daily count", title ="Number of bicycles per day and holiday")
-      sns.set(font_scale=1.25)
-      new_ticks = [i.get_text() for i in g.get_xticklabels()]
-      plt.xticks(range(0, len(new_ticks), 30), new_ticks[::30])
-      g.set_xticklabels(g.get_xticklabels(), rotation=45)
-      return(st.pyplot(g.get_figure()))
-
     
     st.write("### Cycling Traffic")
     st.write("#### Initial Data")
@@ -197,8 +152,6 @@ if page == pages[1]:  # Cycling traffic
     grouped_multiple = df_top3.groupby(["hour_of_day", "weekday_of_count"]).agg({"Hourly count": ["mean", "median","sum"]})
     grouped_multiple.columns = ["Hourly_count_mean", "Hourly_count_median","Hourly_count_sum"]
     grouped_multiple = grouped_multiple.reset_index()
-
-    #weekly_plot(grouped_multiple)
 
     fig = go.Figure(
         data = go.Heatmap(
@@ -235,8 +188,6 @@ if page == pages[1]:  # Cycling traffic
     st.write("As weekends have less traffic, it was estimated, that other vacation days (e.g. christmas or summer holidays) also influence the traffic. The plot \
             below exludes weekends and shows that during holidays the count of bicycles is lower.")
 
-
-    #holiday_plot()
 
     df_vac = df_top3.loc[df_top3["weekday_of_count"].str.contains('Sunday|Saturday') == False]
     df_vac = df_vac.groupby(["date","holiday"]).agg({"Hourly count": "sum"})
@@ -655,7 +606,6 @@ if page == pages[4]:  # Machine Learning
     num = ["day", "Latitude", "Longitude","Humidity","Temp_°C","Rain_last3H"]
     circular = ["hour_of_day", "weekday_of_count"]
 
-    from sklearn.preprocessing import OneHotEncoder
     ohe = OneHotEncoder(drop="first",  sparse_output=False)
 
     X_train_Cat = pd.DataFrame(ohe.fit_transform(X_train[cat]))
@@ -665,7 +615,6 @@ if page == pages[4]:  # Machine Learning
     X_test_Cat = pd.DataFrame(ohe.transform(X_test[cat]))
     X_test_Cat.columns= ohe.get_feature_names_out()
 
-    from sklearn.preprocessing import StandardScaler
     sc = StandardScaler()
     X_train[num] = sc.fit_transform(X_train[num])
     X_test[num] = sc.transform(X_test[num])
@@ -711,45 +660,13 @@ if page == pages[4]:  # Machine Learning
   y_pred, y_pred_train, sc, ohe, y_test, X_train, X_train_enc_sc, X_test, y_train = model_results()
 
   y_test_list = y_test.to_list()
+
   residuals = y_test_list - y_pred
-
-  @st.cache_data
-  def plot_true_pred():
-    fig = plt.figure(figsize=(8, 8))
-    plt.scatter(y_pred, y_test, c="teal")
-    plt.plot((y_test.min(), y_test.max()), (y_test.min(), y_test.max()), color="red", alpha=0.6)
-    plt.xlabel("Predicted values")
-    plt.ylabel("True values")
-    plt.title("Random Forest Regression for bike countings + weather")
-    return(st.plotly_chart(fig))
-
-  @st.cache_data
-  def plot_importances():
-    fig = plt.figure(figsize = (8,8))
-    feat_importances = pd.DataFrame(model.feature_importances_, index=X_train_enc_sc.columns, columns=["Importance"])
-    feat_importances.sort_values(by='Importance', ascending=False, inplace=True)
-    fig = px.bar(feat_importances, x="Importance")
-    return(st.plotly_chart(fig))
-
-  @st.cache_data
-  def residual_plot(): 
-    fig = plt.figure(figsize = (8,8))
-    plt.scatter(residuals, y_test_list)
-
-    plt.xlabel("Residuals")
-    plt.ylabel("True values")
-    plt.title("Residual plot")
-    return(st.plotly_chart(fig))
-
-  @st.cache_data
-  def residual_hist_plot(): 
-    fig = px.histogram(residuals, log_y=True, title='Histogram of residuals')
-    fig.update_layout(font=dict(size=20))
-    return(st.plotly_chart(fig))
-
+  y_test_list = y_test_list[::5]
+  residuals = residuals[::5]
+    
   st.title("Machine Learning")
 
-  
 
   pages_names_indiv = ["Data Preprocessing","Algorithms","Feature Importances & Tree","Residual Plots","Predictions"]
   page_indiv = st.radio("Data Preprocessing", pages_names_indiv)
@@ -807,16 +724,40 @@ circular = ["hour_of_day", "weekday_of_count"]"""
     st.write("From all tested algorithms, the scikit learn Random Forest Regression had the best ratio of processing time vs. Train/Test score. By increasing the min_samples_split \
             parameter we were able to prevent overfitting.")
     
-    #plot_true_pred()
+    fig = plt.figure(figsize=(8, 8))
+    plt.scatter(y_pred[::5], y_test[::5], c="teal")
+    plt.plot((y_test.min(), y_test.max()), (y_test.min(), y_test.max()), color="red", alpha=0.6)
+    plt.xlabel("Predicted values")
+    plt.ylabel("True values")
+    plt.title("Random Forest Regression for bike countings + weather")
+    st.plotly_chart(fig)
 
   if page_indiv == "Feature Importances & Tree":
-    plot_importances()
+    fig = plt.figure(figsize = (8,8))
+    feat_importances = pd.DataFrame(model.feature_importances_, index=X_train_enc_sc.columns, columns=["Importance"])
+    feat_importances.sort_values(by='Importance', ascending=False, inplace=True)
+    fig = px.bar(feat_importances, x="Importance")
+    st.plotly_chart(fig)
     st.image("RFR Tree.png", caption="4 Levels of the random forest tree")
 
   if page_indiv == "Residual Plots":
-    residual_plot()
+    st.write("The dataset was sampled to to every 5th entry to reduce computational load for this presentation.")
 
-    residual_hist_plot()
+    fig = plt.figure(figsize = (8,8))
+    plt.scatter(residuals, y_test_list)
+    plt.xlabel("Residuals")
+    plt.ylabel("True values")
+    plt.title("Residual plot")
+    st.plotly_chart(fig)
+
+    st.write("The residuals are mostly close to 0. The plot is not symmetrical along the vertical axis at residual = 0. It is slightly tilted to the right. \
+             The regression seems to underestimate some smaller values and overestimates bigger values.")
+
+    fig = px.histogram(residuals, log_y=True, title='Histogram of residuals')
+    fig.update_layout(font=dict(size=20))
+    st.plotly_chart(fig)
+
+    st.write("The quartiles of the residuals are: -7.73, -0.9, 5.85.")
 
   if page_indiv == "Predictions":
     st.write("### Predictions")
