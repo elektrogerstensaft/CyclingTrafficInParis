@@ -81,25 +81,29 @@ st.sidebar.markdown(
 
 if page == pages[0]:  # Summary
   st.title("Summary")
-  st.markdown(
+  summary_markdown = """
+    <div style="font-size: 18px; line-height: 1.6;">
+
+    <h3>Introduction</h3>
+
+    <p>This data analysis conducts a comprehensive examination of cycling traffic within the city of Paris, utilizing publicly available data on cycling counts, meteorological conditions, and national holidays. The study yields insightful observations and valuable outcomes.</p>
+
+    <h3>Data Gathering and Processing</h3>
+
+    <p>In gathering and processing the data, a variety of factors were considered, going beyond the surface to understand the dynamics of traffic. This section delves into a careful analysis of counts and explores their interplay with changing weather patterns. The outcomes are presented through vivid traffic overview maps and a variety of charts, creating a clear and logical picture of the cycling scenario in Paris.</p>
+
+    <h3>Predictive Modeling with Machine Learning</h3>
+
+    <p>Leveraging the capabilities of machine learning, we designed predictive models that successfully anticipate cycling traffic patterns. This section details our approach, sharing insights gained from our models. The predictions provide a glimpse into the potential future cycling trends in the city.</p>
+
+    <h3>Executive Summary</h3>
+
+    <p>This executive summary aims to provide a brief yet precise overview of our comprehensive data analysis. It serves as a starting point for a deeper exploration within the complete report.</p>
+
+    </div>
     """
-    ### Introduction
 
-    This data analysis conducts a comprehensive examination of cycling traffic within the city of Paris, utilizing publicly available data on cycling counts, meteorological conditions, and national holidays. The study yields insightful observations and valuable outcomes.
-
-    ### Data Gathering and Processing
-
-    In gathering and processing the data, a variety of factors were considered, going beyond the surface to understand the dynamics of traffic. This section delves into a careful analysis of counts and explores their interplay with changing weather patterns. The outcomes are presented through vivid traffic overview maps and a variety of charts, creating a clear and logical picture of the cycling scenario in Paris.
-
-    ### Predictive Modeling with Machine Learning
-
-    Leveraging the capabilities of machine learning, we designed predictive models that successfully anticipate cycling traffic patterns. This section details our approach, sharing insights gained from our models. The predictions provide a glimpse into the potential future cycling trends in the city.
-
-    ### Executive Summary
-
-    This executive summary aims to provide a brief yet precise overview of our comprehensive data analysis. It serves as a starting point for a deeper exploration within the complete report.
-    """
-  )
+    st.markdown(summary_markdown, unsafe_allow_html=True)
 
 
 if page == pages[1]:  # Cycling traffic
@@ -314,8 +318,6 @@ if page == pages[2]:  # Weather & Traffic
   visualisations = ["Temperature below/above 5°C", "Temperature below/above 25°C"]
   temp_vis = st.selectbox("Select Temperature Visualization", visualisations, index=None, placeholder="Select temperature")
 
-  st.markdown("---")
-
   # Impact of temp and precipitations on average hourly count
   # Impact of temperatures < 5°C and viz
   Temp = []
@@ -354,7 +356,10 @@ if page == pages[2]:  # Weather & Traffic
     plt.ylabel("Average hourly count")
     plt.title("Impact of temperatures on cycling traffic - Below/above 5°C")
     st.pyplot(fig)
-
+    st.write("Drawing a comparison between these values, we observe that the average hourly count tends \
+             to increase as temperatures rise above 5°C. Specifically, the average hourly count in temperatures \
+             above 5°C is approximately 28% higher than in temperatures below 5°C.")
+    
   elif temp_vis == "Temperature below/above 25°C":
     fig = plt.figure()
     plt.rcParams["figure.figsize"] = (8, 6)
@@ -365,6 +370,36 @@ if page == pages[2]:  # Weather & Traffic
     plt.ylabel("Average hourly count")
     plt.title("Impact of temperatures on cycling traffic - Below/above 25°C")
     st.pyplot(fig)
+    st.write("A notable observation is the significant increase in cycling activity as temperatures rise above \
+             25°C. The average hourly count in temperatures exceeding 25°C is significantly higher compared to \
+             temperatures below this threshold, with an approximate difference of 74%!\
+             \n\n Comparing these results to the analysis of temperatures below and above 5°C, it is obvious that the \
+             influence of temperature on cycling patterns strengthen as temperatures rise. The earlier comparison \
+             indicated a 28% increase in average hourly count when transitioning from temperatures below 5°C to \
+             those above 5°C. In contrast, the shift from temperatures below 25°C to those above 25°C illustrates \
+             a more considerable difference, underlining the nonlinear relationship between temperature and cycling traffic.")
+
+  st.markdown("---")
+
+  # Impact of precipitations and viz
+  df_rain = df.groupby("Rain_classes", as_index=False)["Hourly count"].mean()
+
+  fig = plt.figure()
+  plt.rcParams["figure.figsize"] = (8, 8)
+  ax = sns.barplot(x = "Rain_classes", y = "Hourly count", data = df_rain, errorbar=("ci", False))
+  ax.bar_label(ax.containers[0], label_type="edge", fmt="%.2f")
+
+  plt.xlabel("Precipitation classes")
+  plt.ylabel("Average hourly count")
+  plt.title("Impact of precipitations on cycling traffic")
+  plt.xticks(rotation=45)
+  st.pyplot(fig)
+  
+  st.write("Comparing these values, we observe that the average hourly count tends to decrease as the\
+           intensity of precipitation increases. Specifically, the average hourly count during moderate \
+           rain is approximately 34% lower than during no rain/light rain. Similarly, the average hourly \
+           count during heavy rain shows a decrease of about 33% compared to the scenario with no rain/light \
+           rain.")
 
 
   # Impact of precipitations and viz
@@ -380,6 +415,12 @@ if page == pages[2]:  # Weather & Traffic
   plt.title("Impact of precipitations on cycling traffic")
   plt.xticks(rotation=45)
   st.pyplot(fig)
+
+  st.write("Comparing these values, we observe that the average hourly count tends to decrease as the\
+           intensity of precipitation increases. Specifically, the average hourly count during moderate \
+           rain is approximately 34% lower than during no rain/light rain. Similarly, the average hourly \
+           count during heavy rain shows a decrease of about 33% compared to the scenario with no rain/light \
+           rain.")
 
 
 if page == pages[3]:  # Interview & Barometer
