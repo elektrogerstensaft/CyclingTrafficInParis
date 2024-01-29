@@ -14,6 +14,7 @@ import datetime
 from scipy.stats import pearsonr
 from sklearn.model_selection import train_test_split
 
+
 # in rare cases there might be a SSL error:
 import ssl
 ssl._create_default_https_context = ssl._create_unverified_context
@@ -32,18 +33,17 @@ def load_model(filename):
   return model
 
 # import the main dataframe and the barometer dataframe
-#df = load_data("data.csv")
+df = load_data("data.csv")
 
-#df_barom = load_data("reponses-departement-75.csv")
-#df_counter= load_data("Counters.csv")
-#model_file = "RFR.sav"
+df_barom = load_data("reponses-departement-75.csv")
+df_counter= load_data("Counters.csv")
+model_file = "RFR.sav"
 
-df = load_data("https://fwpn.uber.space/media/data.csv")
-df_barom = load_data("https://fwpn.uber.space/media/reponses-departement-75.csv")
-df_counter = load_data("https://fwpn.uber.space/media/Counters.csv")
-model_file = "https://fwpn.uber.space/media/RFR.sav"
+#df = load_data("https://fwpn.uber.space/media/data.csv")
+#df_barom = load_data("https://fwpn.uber.space/media/reponses-departement-75.csv")
+#df_counter = load_data("https://fwpn.uber.space/media/Counters.csv")
+#model_file = "https://fwpn.uber.space/media/RFR.sav"
 models = load_data("https://fwpn.uber.space/media/Models.csv")
-
 
 df["Date and time of count"] = pd.to_datetime(df["Date and time of count"], utc= True)
 
@@ -134,8 +134,43 @@ if page == pages[1]:  # Cycling traffic
         top3.append(x)
     df_top3 = df.loc[df["Counter name"].isin(top3)]
 
+
+    @st.cache_data
+    def weekly_plot(df):
+      fig = go.Figure(
+        data = go.Heatmap(
+            z = df["Hourly_count_sum"],
+            x = df["hour_of_day"],
+            y = df["weekday_of_count"]
+        )
+      )
+      fig.update_xaxes(title = "Hour of day")
+      fig.update_yaxes(title = "Weekday", categoryarray = order)
+      fig.update_layout(
+          title="Heatmap of daytimes per weekday with most bicycle traffic",
+          font=dict(size=20))
+      return(st.plotly_chart(fig))
+    
+    
+    @st.cache_data
+    def holiday_plot():
+      df_vac = df_top3.loc[df_top3["weekday_of_count"].str.contains('Sunday|Saturday') == False]
+      df_vac = df_vac.groupby(["date","holiday"]).agg({"Hourly count": "sum"})
+      df_vac = df_vac.reset_index()
+
+      g = sns.lineplot(data=df_vac, x = "date", y= "Hourly count")
+      g2 = sns.scatterplot(data=df_vac, x = "date", y= "holiday", ax = g.axes.twinx(), color='red')
+      g.set(xlabel = "Date", ylabel = "Daily count", title ="Number of bicycles per day and holiday")
+      sns.set(font_scale=1.25)
+      new_ticks = [i.get_text() for i in g.get_xticklabels()]
+      plt.xticks(range(0, len(new_ticks), 30), new_ticks[::30])
+      g.set_xticklabels(g.get_xticklabels(), rotation=45)
+      return(st.pyplot(g.get_figure()))
+
+    
     st.write("### Cycling Traffic")
     st.write("#### Initial Data")
+
     # presentation of the data (volume, architecture, etc.)
     # data analysis using DataVizualization figures
     st.write("The initial data are the hourly counts of bicycles at different counting sites in Paris from October 2022 to November 2023. \
@@ -147,10 +182,10 @@ if page == pages[1]:  # Cycling traffic
     st.write("#### Data Cleaning")
     st.write("Some entries appeared to be older than the timeframe and were removed. Counts with 0 or more than 2000 bicycles were also removed.")
 
-    fig = px.box(df_top3, y ="Hourly count", x = "Months reduced", title = "All counters hourly counts")
+    fig = px.box(df_top3, y ="Hourly count", x = "Months reduced", title = "Top 3 counters hourly counts")
     fig.update_layout(font=dict(size=20))
     st.plotly_chart(fig)
-
+    
     st.write("The time domain shows a distribution related to working days vs. weekends and to the hour of day. Daily commutes appear very well in the heatmap.")
     # Heatmap of days and hours with most traffic
     order = ["Sunday", "Saturday", "Friday", "Thursday", "Wednesday", "Tuesday","Monday"]
@@ -159,18 +194,20 @@ if page == pages[1]:  # Cycling traffic
     grouped_multiple.columns = ["Hourly_count_mean", "Hourly_count_median","Hourly_count_sum"]
     grouped_multiple = grouped_multiple.reset_index()
 
+    #weekly_plot(grouped_multiple)
+
     fig = go.Figure(
         data = go.Heatmap(
             z = grouped_multiple["Hourly_count_sum"],
             x = grouped_multiple["hour_of_day"],
             y = grouped_multiple["weekday_of_count"]
         )
-    )
+      )
     fig.update_xaxes(title = "Hour of day")
     fig.update_yaxes(title = "Weekday", categoryarray = order)
     fig.update_layout(
-        title="Heatmap of daytimes per weekday with most bicycle traffic",
-        font=dict(size=20))
+          title="Heatmap of daytimes per weekday with most bicycle traffic",
+          font=dict(size=20))
     st.plotly_chart(fig)
 
     st.write("As the heatmap shows, traffic is highest in the moring and has a second peak in the afternoon on working days. A third peak can be observed in the evening, at 9pm. \
@@ -178,6 +215,7 @@ if page == pages[1]:  # Cycling traffic
              than the second. As the top 2 counters are oriented in opposite directions of the same counting site, the simple assumption of people going in one direction \
              in the morning and returning in the afternoon does not line up with the different sized peaks. Either cyclists avoid the counter sites in mornings, \
              or a part of the cyclists who travel in one direction midday also travel back in the afternoon.")
+    
     fig = px.line(df.loc[(df["Counter name"].isin(top3)) & (df["date"] > "2023-06-05") & (df["date"] < "2023-06-11")].sort_values("Date and time of count"),
     x="Date and time of count",
     y="Hourly count",
@@ -187,10 +225,14 @@ if page == pages[1]:  # Cycling traffic
         legend=dict(yanchor="top", y=0.99, xanchor="right", x=0.99),
         font = dict(size=20))
     st.plotly_chart(fig)
+             
 
     st.write("#### Vacation Dates")
     st.write("As weekends have less traffic, it was estimated, that other vacation days (e.g. christmas or summer holidays) also influence the traffic. The plot \
             below exludes weekends and shows that during holidays the count of bicycles is lower.")
+
+
+    #holiday_plot()
 
     df_vac = df_top3.loc[df_top3["weekday_of_count"].str.contains('Sunday|Saturday') == False]
     df_vac = df_vac.groupby(["date","holiday"]).agg({"Hourly count": "sum"})
@@ -221,25 +263,24 @@ if page == pages[1]:  # Cycling traffic
     df_geo.dropna(inplace=True)
 
     # generating a GeoDataFrame 
-    gdf = gpd.GeoDataFrame(
-        df_geo, geometry=gpd.points_from_xy(df_geo.Longitude, df_geo.Latitude), crs="EPSG:4326"
-    )
+    gdf = gpd.GeoDataFrame(df_geo, geometry=gpd.points_from_xy(df_geo.Longitude, df_geo.Latitude), crs="EPSG:4326")
 
     # creating a scatter plot on a map background
     fig = px.scatter_mapbox(gdf,
-                            lat=gdf.geometry.y,
-                            lon=gdf.geometry.x,
-                            size = "Total count",
-                            color = "Total count",
-                            hover_name="Counter name",
-                            hover_data="Total count",
-                            color_continuous_scale=px.colors.sequential.Viridis,
-                            zoom=10.95,
-                            title = "Total counted bicycles in Paris")
+                              lat=gdf.geometry.y,
+                              lon=gdf.geometry.x,
+                              size = "Total count",
+                              color = "Total count",
+                              hover_name="Counter name",
+                              hover_data="Total count",
+                              color_continuous_scale=px.colors.sequential.Viridis,
+                              zoom=10.95,
+                              title = "Total counted bicycles in Paris")
     fig.update_layout(mapbox_style="carto-positron",
-                    margin={"r":0,"t":0,"l":0,"b":0},
-                    font=dict(size=18, color="Black"))
+                      margin={"r":0,"t":0,"l":0,"b":0},
+                      font=dict(size=18, color="Black"))
     st.plotly_chart(fig)
+
 
 if page == pages[2]:  # Weather & Traffic 
   st.title("Weather & Traffic")
@@ -624,9 +665,9 @@ if page == pages[4]:  # Machine Learning
     y_pred = model.predict(X_test_enc_sc)
     y_pred_train = model.predict(X_train_enc_sc)
 
-    return(y_pred, y_pred_train, sc, ohe, y_test, X_train, X_train_enc_sc)
+    return(y_pred, y_pred_train, sc, ohe, y_test, X_train, X_train_enc_sc, X_test, y_train)
     
-  y_pred, y_pred_train, sc, ohe, y_test, X_train, X_train_enc_sc = model_results()
+  y_pred, y_pred_train, sc, ohe, y_test, X_train, X_train_enc_sc, X_test, y_train = model_results()
 
   y_test_list = y_test.to_list()
   residuals = y_test_list - y_pred
@@ -667,7 +708,9 @@ if page == pages[4]:  # Machine Learning
 
   st.title("Machine Learning")
 
-  pages_names_indiv = ["Data Preprocessing","Algorithms","Feature Importances","Residual Plots","Predictions"]
+  
+
+  pages_names_indiv = ["Data Preprocessing","Algorithms","Feature Importances & Tree","Residual Plots","Predictions"]
   page_indiv = st.radio("Data Preprocessing", pages_names_indiv)
 
   if page_indiv == "Data Preprocessing":
@@ -725,8 +768,9 @@ circular = ["hour_of_day", "weekday_of_count"]"""
     
     #plot_true_pred()
 
-  if page_indiv == "Feature Importances":
+  if page_indiv == "Feature Importances & Tree":
     plot_importances()
+    st.image("RFR Tree.png", caption="4 Levels of the random forest tree")
 
   if page_indiv == "Residual Plots":
     residual_plot()
