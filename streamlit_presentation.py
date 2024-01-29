@@ -60,7 +60,7 @@ page=st.sidebar.radio("Go to", pages)
 st.sidebar.markdown("---")
 st.sidebar.markdown(
   """
-  <div style="background-color: #285562; border: 1px solid #85d2db; padding: 10px; border-radius: 5px;">
+  <div style="background-color: #285562; border: 1px solid #85d2db; padding: 10px; border-radius: 5px; color: white;">
 
   **Authors:**
   - Martin Kruse
