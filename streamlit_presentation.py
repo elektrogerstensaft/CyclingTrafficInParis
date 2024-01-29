@@ -353,27 +353,6 @@ if page == pages[2]:  # Weather & Traffic
            rain.")
 
 
-  # Impact of precipitations and viz
-  df_rain = df.groupby("Rain_classes", as_index=False)["Hourly count"].mean()
-
-  fig = plt.figure()
-  plt.rcParams["figure.figsize"] = (8, 8)
-  ax = sns.barplot(x = "Rain_classes", y = "Hourly count", data = df_rain, errorbar=("ci", False))
-  ax.bar_label(ax.containers[0], label_type="edge", fmt="%.2f")
-
-  plt.xlabel("Precipitation classes")
-  plt.ylabel("Average hourly count")
-  plt.title("Impact of precipitations on cycling traffic")
-  plt.xticks(rotation=45)
-  st.pyplot(fig)
-
-  st.write("Comparing these values, we observe that the average hourly count tends to decrease as the\
-           intensity of precipitation increases. Specifically, the average hourly count during moderate \
-           rain is approximately 34% lower than during no rain/light rain. Similarly, the average hourly \
-           count during heavy rain shows a decrease of about 33% compared to the scenario with no rain/light \
-           rain.")
-
-
 if page == pages[3]:  # Interview & Barometer
   st.title("Interview & Barometer")
   st.header("Data Collection and Pre-Processing")
