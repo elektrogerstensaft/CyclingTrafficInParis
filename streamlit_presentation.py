@@ -452,7 +452,7 @@ if page == pages[3]:  # Interview & Barometer
 
     st.write("From this general feeling scores, the city of Paris got a global score of 3.31 on a scale of 0 to 6 alongside with all five topics \
     scoring between 3.06 and 3.61: Security scores the worst with 3.06 whereas efforts score the best with 3.61. This proves that the municipality efforts \
-    are recognized, but not sufficient in terms of security for exampel for bike users. ")
+    are recognized, but not sufficient in terms of security for example for bike users. ")
 
   else:
     st.subheader("Individual feeling topic scores")
