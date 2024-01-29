@@ -433,7 +433,7 @@ if page == pages[3]:  # Interview & Barometer
     scoring between 3.06 and 3.61: Security scores the worst with 3.06 whereas efforts score the best with 3.61. This proves that the municipality efforts \
     are recognized, but not sufficient in terms of security for example for bike users. ")
 
-  else:
+  if page == "Individual feeling topic scores":
     st.subheader("Individual feeling topic scores")
     pages_names_indiv = ["General feeling","Security","Comfort","Efforts","Service and parking lots"]
     page_indiv = st.radio("Individual feeling topic scores", pages_names_indiv)
