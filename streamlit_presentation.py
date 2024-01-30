@@ -253,14 +253,14 @@ if page == pages[2]:  # Weather & Traffic
 
   st.info("### 1) Temp and hourly count")
   st.write(f"Pearson correlation coefficient: {pearson_result_temp[0]:.2f}")
-  st.write(f"P-value: {pearson_result_temp[1]:.4f}")
+  st.write(f"P-value: {pearson_result_temp[1]:.5f}")
 
   # 2) Precipitations and hourly count
   pearson_result_rain = pearsonr(x=df["Rain_last3H"], y=df["Hourly count"])
 
   st.info("### 2) Precipitations and hourly count")
   st.write(f"Pearson correlation coefficient: {pearson_result_rain[0]:.2f}")
-  st.write(f"P-value: {pearson_result_rain[1]:.4f}")
+  st.write(f"P-value: {pearson_result_rain[1]:.5f}")
 
   # plots
   st.markdown("---")
@@ -280,7 +280,6 @@ if page == pages[2]:  # Weather & Traffic
         Temp.append("> 5°C")
 
   df["Temp"] = Temp
-
   df_temp = df.groupby("Temp", as_index=False)["Hourly count"].mean()
 
   # Impact of temperatures > 25°C and viz
@@ -507,6 +506,7 @@ if page == pages[3]:  # Interview & Barometer
       fig = plt.figure()
       plt.rcParams["figure.figsize"] = (12, 6)
       ax = sns.barplot(x = "Score", y = "Comfort", data = df_barom_com, errorbar=("ci", False))
+      plt.xticks(rotation=45)
       ax.bar_label(ax.containers[0], label_type="edge")
 
       plt.xlabel("Score")
@@ -641,8 +641,8 @@ if page == pages[4]:  # Machine Learning
   y_test_list = y_test.to_list()
 
   residuals = y_test_list - y_pred
-  y_test_list = y_test_list[::5]
-  residuals = residuals[::5]
+  y_test_list = y_test_list[::6]
+  residuals = residuals[::6]
     
   st.title("Machine Learning")
 
@@ -656,14 +656,14 @@ if page == pages[4]:  # Machine Learning
     st.write("Before applying any normalisation or encoding, the complete data frame was divided into feature variables and the target variable *hourly counts*. \
             With train_test_split from the scikit learn library the inputs were divided into  a train set and a test set.")
     code = """feats = df[["hour_of_day", "weekday_of_count", "Month and year of count", "day", "Latitude", "Longitude", "Humidity", "Temp_°C", "Rain_last3H", "direction","holiday"]]
-  target = df["Hourly count"]
+target = df["Hourly count"]
 
   X_train, X_test, y_train, y_test = train_test_split(feats, target, test_size=0.25, random_state=42)
     """
     st.code(code, language="python")
     st.write("The features were split into 3 variable types: categorical, numerical and cyclical.")
     code="""cat = ["direction", "Month and year of count","holiday"]
-  num = ["day", "Latitude", "Longitude","Humidity","Temp_°C","Rain_last3H"]
+num = ["day", "Latitude", "Longitude","Humidity","Temp_°C","Rain_last3H"]
 circular = ["hour_of_day", "weekday_of_count"]"""
     st.code(code, language= "python")
 
@@ -671,16 +671,16 @@ circular = ["hour_of_day", "weekday_of_count"]"""
     st.write("The numerical variables were treated with the scikit learn standard scaler method.")
     code="""from sklearn.preprocessing import StandardScaler
       sc = StandardScaler()
-      X_train[num] = sc.fit_transform(X_train[num])
-      X_test[num] = sc.transform(X_test[num])"""
+X_train[num] = sc.fit_transform(X_train[num])
+X_test[num] = sc.transform(X_test[num])"""
     st.code(code, language= "python")
 
     st.write("#### Encoding")
     st.write("The categorical variables were treated with the scikit learn one hot encoder method.")
     code="""from sklearn.preprocessing import OneHotEncoder
-      ohe = OneHotEncoder(drop="first",  sparse_output=False)
-      X_train_Cat = pd.DataFrame(ohe.fit_transform(X_train[cat]))
-      X_train_Cat.columns= ohe.get_feature_names_out()"""
+ohe = OneHotEncoder(drop="first",  sparse_output=False)
+X_train_Cat = pd.DataFrame(ohe.fit_transform(X_train[cat]))
+X_train_Cat.columns= ohe.get_feature_names_out()"""
     st.code(code, language= "python")
 
     st.write("The cyclical variables were treated with sine and cosine functions like this:")
@@ -704,7 +704,7 @@ circular = ["hour_of_day", "weekday_of_count"]"""
             parameter we were able to prevent overfitting.")
     
     fig = plt.figure(figsize=(8, 8))
-    plt.scatter(y_pred[::5], y_test[::5], c="teal")
+    plt.scatter(y_pred[::6], y_test[::6], c="teal")
     plt.plot((y_test.min(), y_test.max()), (y_test.min(), y_test.max()), color="red", alpha=0.6)
     plt.xlabel("Predicted values")
     plt.ylabel("True values")
@@ -811,3 +811,18 @@ circular = ["hour_of_day", "weekday_of_count"]"""
     fig = px.line(metrics, y =["Predictions","Hourly count"], x = metrics.index, title = "Predicted and true values")
     fig.update_layout( xaxis_title="Hours since start of predicted date")
     st.plotly_chart(fig)
+
+
+if page == pages[5]:
+  st.write("Following our study, we can conclude that the city of Paris definitely made progress in particular towards infrastructures taking cycling to the next level. However, is this evolution sufficient and fast paced enough to meet the growing needs of users? \n \
+            As mentioned in our introduction, this development bringing its own challenges, we would like to put our analysis in perspective and provide some meaningful work streams for the future:")
+  lst = ["Study of impact of measures and other topics to be expanded",
+         "Monitoring in real time of the cycling traffic and analysis over a broader time spectrum (historical data)",
+         "Improvement or construction of new cycle lanes ensuring a high-quality cycling infrastructure alongside other complementary interventions",
+         "Very important role of design and context on cycle lane effectiveness  towards urban design and transportation policies as solutions to wider environmental and health issues",
+         "Strategies for optimizing cycling in future traffic environment (keyword ‘security’)",
+         "Expansion of network to better connect within the city of Paris and with public transportation and suburbs",
+         "Application of machine learning models to predict future months cycling traffic and deeper analysis"]
+  for i in lst:
+      st.markdown("- " + i)
+  
